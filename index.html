@@ -415,13 +415,17 @@
         }
     ];
 
-    const WESTEND_ASSET_HUB_PARAMS = {
-        chainId: "0x190a0714", // 420420420 decimal
-        chainName: "Westend Asset Hub",
-        nativeCurrency: { name: "Westend", symbol: "WND", decimals: 12 },
-        rpcUrls: ["https://westend-asset-hub-eth-rpc.polkadot.io"],
-        blockExplorerUrls: ["https://assethub-westend.subscan.io/"]
-    };
+  const WESTEND_ASSET_HUB_PARAMS = {
+    chainId: "0x190a0714", // 420420420 decimal
+    chainName: "Westend Asset Hub",
+    nativeCurrency: { 
+        name: "Westend", 
+        symbol: "WND", 
+        decimals: 18 // MetaMask richiede 18 per compatibilità EVM
+    },
+    rpcUrls: ["https://westend-asset-hub-eth-rpc.polkadot.io"],
+    blockExplorerUrls: ["https://assethub-westend.subscan.io/"]
+};
 
     let provider, signer, contract;
 
@@ -589,3 +593,4 @@
 
 </body>
 </html>
+
