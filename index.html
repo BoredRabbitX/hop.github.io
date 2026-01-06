@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The White Rabbit | HOP Token</title>
+  <title>The White Rabbit | Forest Burrow</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #090415;
-      color: #e0d6ff;
+      background: linear-gradient(135deg, #1a2b1a, #2a422a);
+      color: #e0f0e0;
       font-family: 'Segoe UI', sans-serif;
       min-height: 100vh;
       overflow-x: hidden;
@@ -20,62 +20,52 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       background: 
-        radial-gradient(circle at 20% 30%, rgba(106, 43, 186, 0.15), transparent 40%),
-        radial-gradient(circle at 80% 70%, rgba(255, 107, 107, 0.1), transparent 40%);
+        radial-gradient(circle at 10% 20%, rgba(40, 80, 40, 0.2), transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(50, 100, 50, 0.2), transparent 30%);
       pointer-events: none;
     }
 
-    /* Rabbit Burrow World */
-    .burrow-world {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: -1;
-      overflow: hidden;
-    }
-    .tunnel {
+    /* Forest Burrow */
+    .burrow {
       position: absolute;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 300px;
-      height: 400px;
-      background: #1a122e;
-      border-radius: 0 0 150px 150px;
-      border: 8px solid #2d224a;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      width: 280px;
+      height: 300px;
+      background: #1e140c;
+      border-radius: 0 0 140px 140px;
+      border: 6px solid #2a1f0f;
+      z-index: -1;
     }
-    .tunnel::before {
-      content: "";
+    .moss {
       position: absolute;
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 320px;
-      height: 30px;
-      background: #2d224a;
-      border-radius: 10px;
-    }
-    .root {
-      position: absolute;
-      background: #3a2c5a;
+      background: #2d502d;
       border-radius: 50%;
     }
-    .rabbit-hole {
+    .hole {
       position: absolute;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 120px;
-      height: 80px;
-      background: #0d081a;
-      border-radius: 0 0 60px 60px;
-      border: 4px solid #251a3d;
+      width: 100px;
+      height: 60px;
+      background: #0a0602;
+      border-radius: 0 0 50px 50px;
+      border: 3px solid #1e140c;
       z-index: 2;
+    }
+    .rabbit {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 3.5rem;
+      opacity: 0.9;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 750px;
       margin: 0 auto;
       padding: 20px;
       position: relative;
@@ -85,91 +75,83 @@
       text-align: center;
       padding: 30px 0;
     }
-    .logo {
-      font-size: 3.2rem;
-      margin: 20px 0;
-      filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
-    }
     h1 {
-      font-size: 2.5rem;
-      background: linear-gradient(to right, #ffd700, #ff8c00);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      font-size: 2.4rem;
+      color: #d4e8d4;
+      text-shadow: 0 0 10px rgba(180, 220, 180, 0.5);
       margin-bottom: 10px;
     }
     .subtitle {
-      color: #a090c0;
+      color: #a0c8a0;
       max-width: 600px;
       margin: 0 auto 25px;
       line-height: 1.6;
     }
 
     .card {
-      background: rgba(20, 15, 40, 0.85);
-      border: 1px solid rgba(138, 43, 226, 0.4);
-      border-radius: 20px;
-      padding: 30px;
-      margin: 30px 0;
-      backdrop-filter: blur(10px);
+      background: rgba(20, 35, 20, 0.85);
+      border: 1px solid rgba(100, 180, 100, 0.3);
+      border-radius: 18px;
+      padding: 28px;
+      margin: 25px 0;
     }
     .btn {
-      background: linear-gradient(90deg, #8a2be2, #ff6b6b);
+      background: linear-gradient(90deg, #3a7a3a, #5a9a5a);
       color: white;
       border: none;
       padding: 14px 28px;
       border-radius: 12px;
       font-weight: bold;
       width: 100%;
-      max-width: 280px;
+      max-width: 260px;
       margin: 10px auto;
       display: block;
       cursor: pointer;
       transition: all 0.3s ease;
     }
-    .btn:hover { transform: translateY(-3px); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn:hover { background: linear-gradient(90deg, #4a8a4a, #6aab6a); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .hidden { display: none !important; }
     .error {
-      color: #ff6b6b;
+      color: #ff9999;
       margin: 20px 0;
       padding: 15px;
-      background: rgba(255, 107, 107, 0.1);
+      background: rgba(80, 20, 20, 0.6);
       border-radius: 10px;
-      font-family: monospace;
     }
     .wisdom-box {
-      background: rgba(255, 215, 0, 0.1);
-      border-left: 3px solid #ffd700;
+      background: rgba(50, 80, 50, 0.4);
+      border-left: 3px solid #88c888;
       padding: 20px;
       margin-top: 20px;
       border-radius: 0 12px 12px 0;
     }
-    .wisdom-box p { color: #ffd700; font-style: italic; }
+    .wisdom-box p { color: #c0e0c0; font-style: italic; }
     .twitter-link {
-      color: #ffd700;
+      color: #a0d0a0;
       text-decoration: none;
       font-weight: bold;
     }
 
     footer {
       text-align: center;
-      color: #666;
+      color: #88a888;
       padding: 30px 0 10px;
       font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
-  <!-- Fantasy Burrow Background -->
-  <div class="burrow-world" id="burrowWorld"></div>
+  <!-- Forest Burrow -->
+  <div class="burrow"></div>
+  <div class="hole"></div>
+  <div class="rabbit">🐇</div>
 
   <div class="container">
     <header>
-      <div class="logo">🐇</div>
       <h1>The White Rabbit</h1>
-      <p class="subtitle">Follow the rabbit down the burrow. Burn HOP tokens to reveal the truth.</p>
+      <p class="subtitle">Follow the rabbit into the enchanted forest. Burn HOP tokens to reveal the truth.</p>
     </header>
 
     <div id="errorBox" class="error hidden"></div>
@@ -199,150 +181,196 @@
   </div>
 
   <script>
-    // === ROBUST ETHERS.JS LOADER ===
-    function loadEthersJS() {
-      return new Promise((resolve, reject) => {
-        if (window.ethers) {
-          resolve();
-          return;
-        }
+    // === CONFIGURATION ===
+    const CONTRACT_ADDRESS = "0xc3432f679e465073dbc84F3B613a20f12EdB5dC1";
+    
+    // Function selectors (precomputed)
+    const SELECTORS = {
+      balanceOf: "0x70a08231",     // balanceOf(address)
+      hasHopped: "0xb05c91c5",      // hasHopped(address)
+      hasClaimed: "0xd379336d",     // hasClaimed(address)
+      hop: "0x9c67067f",            // hop()
+      claimWisdom: "0x7e8f90a3"     // claimWisdom()
+    };
 
-        const script = document.createElement('script');
-        script.src = "https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js";
-        script.onload = () => {
-          if (window.ethers) resolve();
-          else reject(new Error("ethers.js loaded but not available"));
-        };
-        script.onerror = () => reject(new Error("Failed to load ethers.js"));
-        document.head.appendChild(script);
-      });
+    // === DOM ELEMENTS ===
+    const connectBtn = document.getElementById('connectBtn');
+    const dashboard = document.getElementById('dashboard');
+    const accountDisplay = document.getElementById('accountDisplay');
+    const balanceDisplay = document.getElementById('balanceDisplay');
+    const hopBtn = document.getElementById('hopBtn');
+    const claimBtn = document.getElementById('claimBtn');
+    const wisdomBox = document.getElementById('wisdomBox');
+    const errorBox = document.getElementById('errorBox');
+
+    // === UTILS ===
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.classList.remove('hidden');
+      console.error("[Forest Error]", msg);
     }
 
-    // === FANTASY BURROW GENERATOR ===
-    function generateBurrowWorld() {
-      const world = document.getElementById('burrowWorld');
-      const tunnel = document.createElement('div');
-      tunnel.className = 'tunnel';
-      world.appendChild(tunnel);
+    function padAddress(address) {
+      return address.toLowerCase().replace('0x', '').padStart(64, '0');
+    }
 
-      const hole = document.createElement('div');
-      hole.className = 'rabbit-hole';
-      world.appendChild(hole);
+    // === METAMASK CONNECTION (PURE WEB3) ===
+    async function connectWallet() {
+      if (!window.ethereum) {
+        showError("🦊 MetaMask not detected. Install it to enter the forest.");
+        return;
+      }
 
-      // Genera radici algoritmiche
-      for (let i = 0; i < 25; i++) {
-        const root = document.createElement('div');
-        root.className = 'root';
-        const size = 10 + Math.random() * 40;
-        const x = 50 + (Math.random() - 0.5) * 200;
-        const y = 50 + Math.random() * 300;
-        root.style.width = `${size}px`;
-        root.style.height = `${size}px`;
-        root.style.left = `${x}px`;
-        root.style.top = `${y}px`;
-        world.appendChild(root);
+      try {
+        // Request account access
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (!accounts || accounts.length === 0) {
+          throw new Error("No accounts found");
+        }
+
+        const account = accounts[0];
+        accountDisplay.textContent = account.slice(0,6) + "..." + account.slice(-4);
+        document.getElementById('connectSection').classList.add('hidden');
+        dashboard.classList.remove('hidden');
+
+        // Load initial data
+        await refreshData(account);
+
+        // Setup button actions
+        hopBtn.onclick = () => executeAction(account, SELECTORS.hop, "hop", false);
+        claimBtn.onclick = () => executeAction(account, SELECTORS.claimWisdom, "claimWisdom", false);
+
+      } catch (err) {
+        if (err.code === 4001) {
+          showError("🦊 Connection cancelled by user.");
+        } else {
+          showError("🦊 Connection failed. Ensure you're on Asset-Hub Westend.");
+        }
       }
     }
 
-    // === DApp Logic ===
-    async function initDApp() {
-      generateBurrowWorld();
+    // === READ CONTRACT DATA ===
+    async function refreshData(account) {
+      try {
+        // Read balanceOf
+        const balanceHex = await window.ethereum.request({
+          method: 'eth_call',
+          params: [{
+            to: CONTRACT_ADDRESS,
+            data: SELECTORS.balanceOf + padAddress(account)
+          }, 'latest']
+        });
 
-      const connectBtn = document.getElementById('connectBtn');
-      const dashboard = document.getElementById('dashboard');
-      const accountDisplay = document.getElementById('accountDisplay');
-      const balanceDisplay = document.getElementById('balanceDisplay');
-      const hopBtn = document.getElementById('hopBtn');
-      const claimBtn = document.getElementById('claimBtn');
-      const wisdomBox = document.getElementById('wisdomBox');
-      const errorBox = document.getElementById('errorBox');
+        // Read hasHopped
+        const hoppedHex = await window.ethereum.request({
+          method: 'eth_call',
+          params: [{
+            to: CONTRACT_ADDRESS,
+            	SELECTORS.hasHopped + padAddress(account)
+          }, 'latest']
+        });
 
-      function showError(msg) {
-        errorBox.textContent = msg;
-        errorBox.classList.remove('hidden');
-        console.error("[White Rabbit Error]", msg);
+        // Read hasClaimed
+        const claimedHex = await window.ethereum.request({
+          method: 'eth_call',
+          params: [{
+            to: CONTRACT_ADDRESS,
+            SELECTORS.hasClaimed + padAddress(account)
+          }, 'latest']
+        });
+
+        // Parse results
+        const balance = parseInt(balanceHex || "0x0", 16) / 1e18;
+        const hasHopped = parseInt(hoppedHex || "0x0", 16) === 1;
+        const hasClaimed = parseInt(claimedHex || "0x0", 16) === 1;
+
+        balanceDisplay.textContent = balance.toFixed(2);
+        hopBtn.disabled = hasHopped;
+        claimBtn.disabled = !hasHopped || hasClaimed;
+        if (hasClaimed) wisdomBox.classList.remove('hidden');
+
+      } catch (err) {
+        showError("Failed to read contract. Check network and contract address.");
       }
+    }
 
-      async function connectWallet() {
-        if (!window.ethereum) {
-          showError("🦊 MetaMask not detected. Install it to enter the burrow.");
-          return;
+    // === EXECUTE CONTRACT FUNCTIONS ===
+    async function executeAction(account, data, name, value = "0x0") {
+      try {
+        const txHash = await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: account,
+            to: CONTRACT_ADDRESS,
+            data: data,
+            value: value
+          }]
+        });
+        
+        // Wait for confirmation
+        const receipt = await waitForTransaction(txHash);
+        if (receipt) {
+          // Refresh after 1 second
+          setTimeout(() => refreshData(account), 1000);
+          if (name === "claimWisdom") {
+            wisdomBox.classList.remove('hidden');
+          }
         }
-
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          if (!accounts?.length) throw new Error("No accounts");
-
-          await loadEthersJS();
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const signer = provider.getSigner();
-          const contract = new ethers.Contract(
-            "0xc3432f679e465073dbc84F3B613a20f12EdB5dC1",
-            [
-              "function balanceOf(address) view returns (uint256)",
-              "function hasHopped(address) view returns (bool)",
-              "function hasClaimed(address) view returns (bool)",
-              "function hop()",
-              "function claimWisdom()"
-            ],
-            signer
-          );
-
-          const account = accounts[0];
-          accountDisplay.textContent = account.slice(0,6) + "..." + account.slice(-4);
-          connectBtn.closest('.card').classList.add('hidden');
-          dashboard.classList.remove('hidden');
-
-          // Refresh
-          const [balance, hopped, claimed] = await Promise.all([
-            contract.balanceOf(account),
-            contract.hasHopped(account),
-            contract.hasClaimed(account)
-          ]);
-
-          balanceDisplay.textContent = ethers.utils.formatUnits(balance, 18);
-          hopBtn.disabled = hopped;
-          claimBtn.disabled = !hopped || claimed;
-          if (claimed) wisdomBox.classList.remove('hidden');
-
-          // Actions
-          hopBtn.onclick = async () => {
-            try {
-              const tx = await contract.hop();
-              await tx.wait();
-              location.reload();
-            } catch (err) {
-              if (err.code !== 4001) showError("Hop failed. Check gas balance.");
-            }
-          };
-
-          claimBtn.onclick = async () => {
-            try {
-              const tx = await contract.claimWisdom();
-              await tx.wait();
-              wisdomBox.classList.remove('hidden');
-              location.reload();
-            } catch (err) {
-              if (err.code !== 4001) showError("Claim failed. Need 1 HOP token.");
-            }
-          };
-
-        } catch (err) {
-          if (err.message?.includes("ethers.js")) {
-            showError("🦊 Failed to load web3 library. Check your internet connection.");
-          } else if (err.code === 4001) {
-            showError("🦊 Connection cancelled.");
+      } catch (err) {
+        if (err.code !== 4001) {
+          if (name === "claimWisdom") {
+            showError("Claim failed. You need at least 1 HOP token.");
           } else {
-            showError(`🦊 ${err.message || 'Unknown error'}`);
+            showError(name + " failed. Check your gas balance.");
           }
         }
       }
-
-      connectBtn.addEventListener('click', connectWallet);
     }
 
-    // Start everything
-    document.addEventListener('DOMContentLoaded', initDApp);
+    // === WAIT FOR TRANSACTION ===
+    function waitForTransaction(txHash) {
+      return new Promise((resolve) => {
+        const check = async () => {
+          try {
+            const receipt = await window.ethereum.request({
+              method: 'eth_getTransactionReceipt',
+              params: [txHash]
+            });
+            if (receipt) {
+              resolve(receipt);
+            } else {
+              setTimeout(check, 2000);
+            }
+          } catch (err) {
+            resolve(null);
+          }
+        };
+        setTimeout(check, 1000);
+      });
+    }
+
+    // === INIT ===
+    connectBtn.addEventListener('click', connectWallet);
+
+    // Generate moss in the burrow
+    function generateMoss() {
+      const body = document.body;
+      for (let i = 0; i < 20; i++) {
+        const moss = document.createElement('div');
+        moss.className = 'moss';
+        const size = 15 + Math.random() * 30;
+        const x = 20 + Math.random() * 90;
+        const y = 40 + Math.random() * 50;
+        moss.style.width = `${size}px`;
+        moss.style.height = `${size}px`;
+        moss.style.left = `${x}%`;
+        moss.style.top = `${y}%`;
+        body.appendChild(moss);
+      }
+    }
+
+    // Start
+    generateMoss();
   </script>
 </body>
 </html>
