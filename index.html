@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Enter the HOP</title>
+  <title>🐇 Enter the HOP</title>
   <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" type="application/javascript"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -20,7 +20,7 @@
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       z-index: 1;
-      opacity: 0.2;
+      opacity: 0.25;
     }
 
     canvas {
@@ -34,26 +34,26 @@
       text-align: center;
       max-width: 900px;
       margin: 0 auto;
+      font-size: 1.1rem;
     }
 
     h1 {
-      font-size: 3rem;
+      font-size: 2.8rem;
       margin: 20px 0;
       text-shadow: 0 0 10px #0f0;
     }
 
-    .neo-art {
-      font-size: 8px;
-      line-height: 8px;
-      letter-spacing: 1px;
-      margin: 30px auto;
-      opacity: 0.9;
+    .rabbit-art {
+      font-size: 10px;
+      line-height: 10px;
+      margin: 20px auto;
+      opacity: 0.95;
       text-align: center;
     }
 
     .rabbit-msg {
       margin: 20px 0;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       color: #0a0;
     }
 
@@ -85,32 +85,28 @@
 
     .wisdom {
       margin-top: 20px;
-      padding: 10px;
+      padding: 12px;
       border: 1px dashed #0a0;
       color: #0f0;
       font-style: italic;
+      font-size: 1rem;
     }
   </style>
 </head>
 <body>
   <div id="matrix-rain"></div>
   <div id="content">
-    <h1>THE HOP REALM</h1>
+    <h1>ENTER THE HOP REALM</h1>
 
-    <pre class="neo-art">
-           ⢀⣤⣶⣶⣶⣶⣦⡀
-          ⣾⣿⣿⣿⣿⣿⣿⣷
-         ⣼⠿⠛⠛⠛⠛⠻⢿⣧
-        ⣸⡀⠀⠀⠀⠀⠀⠀⠀⢀⣇
-        ⣿⡇⠀⣀⣀⣀⣀⠀⢸⣿
-        ⣿⣧⣤⣤⣤⣤⣤⣤⣼⣿
-        ⠻⢿⣿⣿⣿⣿⣿⣿⡿⠟
-          ⠈⠛⠛⠛⠛⠛⠉
-      (Neo is watching... 0x0f0)
+    <pre class="rabbit-art">
+         (\__/)
+         (•ㅅ•)   🐇
+         / 　 づ
+      "Time is a flat circle. Follow me."
     </pre>
 
     <div class="rabbit-msg">
-      🐇 <em>"Follow me down the HOP hole, Neo. Time is ticking."</em>
+      🕳️ <em>"Take the HOP, Neo. Burn 1 token to reveal the truth."</em>
     </div>
 
     <button id="connectBtn">🦊 Connect MetaMask</button>
@@ -122,21 +118,33 @@
       <div id="status"></div>
       <div id="wisdomOutput" class="wisdom hidden"></div>
     </div>
+
+    <div style="margin-top:15px; font-size:0.85rem; color:#080; opacity:0.8;">
+      ⚠️ First time? The site auto-adds <strong>Asset-Hub Westend Testnet</strong>.
+    </div>
   </div>
 
   <script>
-    // Config
+    // 🔗 Smart Contract Config
     const CONTRACT_ADDRESS = "0xc3432f679e465073dbc84F3B613a20f12EdB5dC1";
     const CONTRACT_ABI = [
       {"inputs":[],"name":"claimWisdom","outputs":[],"stateMutability":"nonpayable","type":"function"},
       {"inputs":[],"name":"hop","outputs":[],"stateMutability":"nonpayable","type":"function"},
       {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"hasHopped","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
       {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"hasClaimed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
-      {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-      {"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}
+      {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}
     ];
 
-    // Matrix rain
+    // 🌐 Westend AssetHub EVM Config
+    const WESTEND_CHAIN = {
+      chainId: '0x19111115', // 420420421 in hex
+      chainName: 'Asset-Hub Westend Testnet',
+      nativeCurrency: { name: 'WND', symbol: 'WND', decimals: 18 },
+      rpcUrls: ['https://westend-asset-hub-eth-rpc.polkadot.io'],
+      blockExplorerUrls: ['https://assethub-westend.subscan.io/']
+    };
+
+    // Matrix rain with hidden messages
     const canvas = document.createElement('canvas');
     document.getElementById('matrix-rain').appendChild(canvas);
     const ctx = canvas.getContext('2d');
@@ -163,29 +171,31 @@
     }
     setInterval(draw, 33);
 
-    // Wallet & contract
+    // 🦊 Wallet & Contract Logic
     let provider, signer, contract, account;
 
-    document.getElementById('connectBtn').addEventListener('click', async () => {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          await window.ethereum.request({ method: 'eth_requestAccounts' });
-          provider = new ethers.providers.Web3Provider(window.ethereum);
-          signer = provider.getSigner();
-          account = await signer.getAddress();
-          contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
-          document.getElementById('walletInfo').textContent = `Connected: ${account.slice(0,6)}...${account.slice(-4)}`;
-          document.getElementById('walletInfo').classList.remove('hidden');
-          document.getElementById('actions').classList.remove('hidden');
-          updateStatus();
-        } catch (err) {
-          alert("User denied account access");
+    async function ensureWestendNetwork() {
+      const provider = window.ethereum;
+      try {
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: WESTEND_CHAIN.chainId }],
+        });
+      } catch (switchError) {
+        if (switchError.code === 4902) {
+          try {
+            await provider.request({
+              method: 'wallet_addEthereumChain',
+              params: [WESTEND_CHAIN],
+            });
+          } catch (addError) {
+            throw new Error("Failed to add Westend AssetHub EVM");
+          }
+        } else {
+          throw switchError;
         }
-      } else {
-        alert("MetaMask not detected");
       }
-    });
+    }
 
     async function updateStatus() {
       if (!contract || !account) return;
@@ -195,34 +205,66 @@
           contract.hasClaimed(account),
           contract.balanceOf(account)
         ]);
-        const statusEl = document.getElementById('status');
         const hopBtn = document.getElementById('hopBtn');
         const claimBtn = document.getElementById('claimBtn');
 
         hopBtn.disabled = hasHopped;
         claimBtn.disabled = !hasHopped || hasClaimed || balance.lt(ethers.utils.parseEther("1"));
 
-        statusEl.innerHTML = `
+        document.getElementById('status').innerHTML = `
           🐾 hasHopped: ${hasHopped ? '✅' : '❌'} |
           📜 hasClaimed: ${hasClaimed ? '✅' : '❌'} |
           💰 Balance: ${ethers.utils.formatEther(balance)} HOP
         `;
       } catch (e) {
-        document.getElementById('status').textContent = "⚠️ Error reading contract";
+        console.error(e);
+        document.getElementById('status').textContent = "⚠️ Error fetching status";
       }
     }
+
+    document.getElementById('connectBtn').addEventListener('click', async () => {
+      if (typeof window.ethereum === 'undefined') {
+        alert("🦊 Install MetaMask!");
+        return;
+      }
+
+      try {
+        await ensureWestendNetwork();
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        account = accounts[0];
+        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+        document.getElementById('walletInfo').textContent = `Connected: ${account.slice(0,6)}...${account.slice(-4)}`;
+        document.getElementById('walletInfo').classList.remove('hidden');
+        document.getElementById('actions').classList.remove('hidden');
+        updateStatus();
+
+      } catch (err) {
+        console.error("Connection error:", err);
+        if (err.message?.includes("User denied")) {
+          alert("🦊 Accept the connection in MetaMask.");
+        } else if (err.message?.includes("add")) {
+          alert("⚠️ " + err.message);
+        } else {
+          alert("Failed to connect. Check console for details.");
+        }
+      }
+    });
 
     document.getElementById('hopBtn').addEventListener('click', async () => {
       if (!contract) return;
       try {
         const tx = await contract.hop();
-        document.getElementById('status').textContent = "🦊 Hopping... (waiting for confirmation)";
+        document.getElementById('status').textContent = "🐇 Hopping... (confirming)";
         await tx.wait();
         document.getElementById('status').textContent = "✅ You hopped! Now claim your wisdom.";
         updateStatus();
       } catch (e) {
         console.error(e);
-        document.getElementById('status').textContent = "⚠️ Transaction failed";
+        document.getElementById('status').textContent = "⚠️ hop() failed";
       }
     });
 
@@ -230,15 +272,15 @@
       if (!contract) return;
       try {
         const tx = await contract.claimWisdom();
-        document.getElementById('status').textContent = "📜 Claiming wisdom... (burning 1 HOP)";
-        const receipt = await tx.wait();
+        document.getElementById('status').textContent = "📜 Claiming wisdom (burning 1 HOP)...";
+        await tx.wait();
         const wisdom = "Follow: https://x.com/thewhiterabbitM  ";
         document.getElementById('wisdomOutput').textContent = wisdom;
         document.getElementById('wisdomOutput').classList.remove('hidden');
         updateStatus();
       } catch (e) {
         console.error(e);
-        let msg = "⚠️ Claim failed. Did you hop? Do you have 1 HOP?";
+        let msg = "⚠️ Claim failed. Did you hop? Do you hold 1 HOP?";
         if (e.code === "UNPREDICTABLE_GAS_LIMIT") msg += " (Try increasing gas limit)";
         document.getElementById('status').textContent = msg;
       }
