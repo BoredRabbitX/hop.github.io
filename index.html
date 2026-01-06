@@ -3,328 +3,246 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WAKE UP, NEO...</title>
-  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+  <title>Enter the HOP</title>
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" type="application/javascript"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
       background: #000;
       color: #0f0;
       font-family: 'Courier New', monospace;
-      min-height: 100vh;
-      overflow-x: hidden;
+      height: 100%;
+      overflow: hidden;
       position: relative;
-    }
-    body::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0,30,0,0.15),
-        rgba(0,30,0,0.15) 1px,
-        transparent 1px,
-        transparent 2px
-      );
-      pointer-events: none;
-      z-index: -1;
-    }
-    .container {
-      max-width: 700px;
-      margin: 0 auto;
-      padding: 30px 20px;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2.2rem;
-      margin: 20px 0;
-      text-shadow: 0 0 8px #0f0;
-      letter-spacing: 2px;
-    }
-    .subtitle {
-      color: #0a0;
-      margin: 15px 0;
-      font-size: 1rem;
-      text-shadow: 0 0 4px #0a0;
     }
 
-    /* Glitch Rabbit */
-    .rabbit-container {
-      position: relative;
-      height: 180px;
-      margin: 30px auto;
-    }
-    .rabbit {
+    #matrix-rain {
       position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 60px;
-      height: 60px;
-      background: #0f0;
-      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      opacity: 0.9;
-      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.1s;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 1;
+      opacity: 0.2;
     }
-    .rabbit.hopping {
-      transform: translateX(-50%) translateY(-100px) scale(1.2);
-      opacity: 1;
+
+    canvas {
+      display: block;
+    }
+
+    #content {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin: 20px 0;
       text-shadow: 0 0 10px #0f0;
     }
-    .rabbit::after {
-      content: "🐇";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 40px;
-      color: white;
-      text-shadow: 0 0 6px #00ff00;
+
+    .neo-art {
+      font-size: 8px;
+      line-height: 8px;
+      letter-spacing: 1px;
+      margin: 30px auto;
+      opacity: 0.9;
+      text-align: center;
     }
 
-    /* UI */
-    .card {
-      background: rgba(0, 15, 0, 0.7);
-      border: 1px solid #0f0;
-      border-radius: 4px;
-      padding: 20px;
+    .rabbit-msg {
       margin: 20px 0;
-      box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+      font-size: 1.2rem;
+      color: #0a0;
     }
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      margin: 8px 0;
-      font-size: 1rem;
-    }
+
     button {
       background: transparent;
-      color: #0f0;
       border: 1px solid #0f0;
-      padding: 12px 24px;
-      margin: 10px 5px;
-      font-family: 'Courier New', monospace;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-    button:hover {
-      background: rgba(0, 255, 0, 0.1);
-      box-shadow: 0 0 12px #0f0;
-    }
-    button:disabled {
-      color: #050;
-      border-color: #050;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-
-    .wisdom-box {
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(0, 20, 0, 0.8);
-      border: 1px solid #0a0;
-      border-left: 4px solid #0f0;
-    }
-    .wisdom-box a {
       color: #0f0;
-      text-decoration: none;
-      font-weight: bold;
-      display: block;
-      margin-top: 8px;
-      text-shadow: 0 0 6px #0f0;
-    }
-    .wisdom-box a:hover {
-      text-decoration: underline;
+      padding: 10px 20px;
+      margin: 10px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.3s;
     }
 
-    .glitch {
-      animation: glitch 2s infinite;
-    }
-    @keyframes glitch {
-      0% { text-shadow: 0 0 5px #0f0; }
-      2% { transform: translateX(2px); opacity: 0.9; }
-      4% { transform: translateX(-2px); opacity: 1; }
-      98% { transform: translateX(0); opacity: 1; }
-      100% { text-shadow: 0 0 8px #0f0; }
+    button:hover {
+      background: #0f02;
+      box-shadow: 0 0 8px #0f0;
     }
 
-    footer {
-      margin-top: 40px;
+    #status {
+      margin-top: 20px;
+      min-height: 1.5em;
       color: #0a0;
-      font-size: 0.9rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .wisdom {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px dashed #0a0;
+      color: #0f0;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1 class="glitch">WAKE UP, NEO...</h1>
-    <p class="subtitle">THE RABBIT IS WAITING IN ASSET-HUB</p>
+  <div id="matrix-rain"></div>
+  <div id="content">
+    <h1>THE HOP REALM</h1>
 
-    <div class="rabbit-container">
-      <div class="rabbit" id="rabbit"></div>
+    <pre class="neo-art">
+           ⢀⣤⣶⣶⣶⣶⣦⡀
+          ⣾⣿⣿⣿⣿⣿⣿⣷
+         ⣼⠿⠛⠛⠛⠛⠻⢿⣧
+        ⣸⡀⠀⠀⠀⠀⠀⠀⠀⢀⣇
+        ⣿⡇⠀⣀⣀⣀⣀⠀⢸⣿
+        ⣿⣧⣤⣤⣤⣤⣤⣤⣼⣿
+        ⠻⢿⣿⣿⣿⣿⣿⣿⡿⠟
+          ⠈⠛⠛⠛⠛⠛⠉
+      (Neo is watching... 0x0f0)
+    </pre>
+
+    <div class="rabbit-msg">
+      🐇 <em>"Follow me down the HOP hole, Neo. Time is ticking."</em>
     </div>
 
-    <div id="connect-section">
-      <button id="connectBtn">> CONNECT TO THE REALITY</button>
+    <button id="connectBtn">🦊 Connect MetaMask</button>
+    <div id="walletInfo" class="hidden"></div>
+
+    <div id="actions" class="hidden">
+      <button id="hopBtn">🐇 hop()</button>
+      <button id="claimBtn">📜 claimWisdom()</button>
+      <div id="status"></div>
+      <div id="wisdomOutput" class="wisdom hidden"></div>
     </div>
-
-    <div id="app-section" style="display: none;">
-      <div class="card">
-        <div class="info-row">
-          <span>IDENTITY:</span>
-          <span id="address">0x0000...0000</span>
-        </div>
-        <div class="info-row">
-          <span>HOP TOKENS:</span>
-          <span id="balance">0.00</span>
-        </div>
-        <div class="info-row">
-          <span>STATUS:</span>
-          <span id="status">AWAITING FIRST HOP</span>
-        </div>
-      </div>
-
-      <button id="hopBtn">> EXECUTE HOP()</button>
-      <button id="claimBtn" disabled>> ACCESS WISDOM</button>
-
-      <div id="wisdom-box" style="display: none;" class="wisdom-box">
-        <p>> SYSTEM MESSAGE: TRUTH REVEALED</p>
-        <a href="https://x.com/thewhiterabbitM" target="_blank">@THEWHITERABBITM</a>
-      </div>
-    </div>
-
-    <footer>
-      <p>> CODED IN THE DESERT OF THE REAL</p>
-    </footer>
   </div>
 
   <script>
-    const CONTRACT_ADDRESS = "0x087Ea7C436cd9689C9aad64E5B76C6C1C3771Ad9";
+    // Config
+    const CONTRACT_ADDRESS = "0xc3432f679e465073dbc84F3B613a20f12EdB5dC1";
     const CONTRACT_ABI = [
-      "function balanceOf(address) view returns (uint256)",
-      "function hop()",
-      "function claimWisdom()",
-      "function hasHopped(address) view returns (bool)",
-      "function hasClaimed(address) view returns (bool)"
+      {"inputs":[],"name":"claimWisdom","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[],"name":"hop","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"hasHopped","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"hasClaimed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"}
     ];
 
-    // Network config without exposing Chain ID
-    const NETWORK = {
-      chainName: "Polkadot AssetHub Westend",
-      rpcUrls: ["https://westend-asset-hub-eth-rpc.polkadot.io"],
-      nativeCurrency: { name: "WND", symbol: "WND", decimals: 18 },
-      blockExplorerUrls: ["https://assethub-westend.subscan.io"]
-    };
+    // Matrix rain
+    const canvas = document.createElement('canvas');
+    document.getElementById('matrix-rain').appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const chars = "0123456789abcdefHOPWISDOMORACLE";
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = [];
+    for (let i = 0; i < columns; i++) drops[i] = Math.random() * canvas.height;
 
-    // DOM
-    const connectBtn = document.getElementById("connectBtn");
-    const appSection = document.getElementById("app-section");
-    const addressEl = document.getElementById("address");
-    const balanceEl = document.getElementById("balance");
-    const statusEl = document.getElementById("status");
-    const hopBtn = document.getElementById("hopBtn");
-    const claimBtn = document.getElementById("claimBtn");
-    const wisdomBox = document.getElementById("wisdom-box");
-    const rabbit = document.getElementById("rabbit");
-
-    let provider, signer, contract;
-
-    function log(msg) {
-      console.log(`> ${msg}`);
+    function draw() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0f0';
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+          drops[i] = 0;
+        drops[i]++;
+      }
     }
+    setInterval(draw, 33);
 
-    async function switchNetwork() {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: "0x1905F5D5" }],
-        });
-      } catch (e) {
-        if (e.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{ ...NETWORK, chainId: "0x1905F5D5" }],
-          });
+    // Wallet & contract
+    let provider, signer, contract, account;
+
+    document.getElementById('connectBtn').addEventListener('click', async () => {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          signer = provider.getSigner();
+          account = await signer.getAddress();
+          contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+          document.getElementById('walletInfo').textContent = `Connected: ${account.slice(0,6)}...${account.slice(-4)}`;
+          document.getElementById('walletInfo').classList.remove('hidden');
+          document.getElementById('actions').classList.remove('hidden');
+          updateStatus();
+        } catch (err) {
+          alert("User denied account access");
         }
+      } else {
+        alert("MetaMask not detected");
+      }
+    });
+
+    async function updateStatus() {
+      if (!contract || !account) return;
+      try {
+        const [hasHopped, hasClaimed, balance] = await Promise.all([
+          contract.hasHopped(account),
+          contract.hasClaimed(account),
+          contract.balanceOf(account)
+        ]);
+        const statusEl = document.getElementById('status');
+        const hopBtn = document.getElementById('hopBtn');
+        const claimBtn = document.getElementById('claimBtn');
+
+        hopBtn.disabled = hasHopped;
+        claimBtn.disabled = !hasHopped || hasClaimed || balance.lt(ethers.utils.parseEther("1"));
+
+        statusEl.innerHTML = `
+          🐾 hasHopped: ${hasHopped ? '✅' : '❌'} |
+          📜 hasClaimed: ${hasClaimed ? '✅' : '❌'} |
+          💰 Balance: ${ethers.utils.formatEther(balance)} HOP
+        `;
+      } catch (e) {
+        document.getElementById('status').textContent = "⚠️ Error reading contract";
       }
     }
 
-    connectBtn.onclick = async () => {
-      if (!window.ethereum) return alert("> INSTALL METAMASK OR REMAIN ASLEEP");
-      
+    document.getElementById('hopBtn').addEventListener('click', async () => {
+      if (!contract) return;
       try {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        await switchNetwork();
-        
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-        
-        const addr = await signer.getAddress();
-        addressEl.innerText = addr.slice(0,6) + "..." + addr.slice(-4);
-        appSection.style.display = "block";
-        connectBtn.style.display = "none";
-        log("CONNECTION ESTABLISHED");
-        await refresh();
-      } catch (err) {
-        log("CONNECTION FAILED: " + err.message);
-        alert("> AUTHENTICATION REJECTED");
-      }
-    };
-
-    async function refresh() {
-      const addr = await signer.getAddress();
-      const balance = await contract.balanceOf(addr);
-      const hasHopped = await contract.hasHopped(addr);
-      const hasClaimed = await contract.hasClaimed(addr);
-
-      balanceEl.innerText = ethers.utils.formatUnits(balance, 18);
-      statusEl.innerText = hasHopped 
-        ? (hasClaimed ? "WISDOM ACQUIRED" : "READY TO SEE")
-        : "AWAITING FIRST HOP";
-
-      hopBtn.disabled = hasHopped;
-      claimBtn.disabled = !hasHopped || hasClaimed;
-    }
-
-    hopBtn.onclick = async () => {
-      rabbit.classList.add("hopping");
-      setTimeout(() => rabbit.classList.remove("hopping"), 600);
-      
-      try {
-        log("EXECUTING HOP()...");
         const tx = await contract.hop();
+        document.getElementById('status').textContent = "🦊 Hopping... (waiting for confirmation)";
         await tx.wait();
-        log("HOP SUCCESSFUL");
-        await refresh();
-      } catch (err) {
-        rabbit.classList.remove("hopping");
-        log("HOP FAILED: " + err.message);
-        alert("> HOP ABORTED — TRY AGAIN");
+        document.getElementById('status').textContent = "✅ You hopped! Now claim your wisdom.";
+        updateStatus();
+      } catch (e) {
+        console.error(e);
+        document.getElementById('status').textContent = "⚠️ Transaction failed";
       }
-    };
+    });
 
-    claimBtn.onclick = async () => {
+    document.getElementById('claimBtn').addEventListener('click', async () => {
+      if (!contract) return;
       try {
-        log("ACCESSING WISDOM DATABASE...");
         const tx = await contract.claimWisdom();
-        await tx.wait();
-        wisdomBox.style.display = "block";
-        log("WISDOM ACQUIRED — FOLLOW THE RABBIT");
-        await refresh();
-      } catch (err) {
-        log("ACCESS DENIED: " + err.message);
-        alert("> YOU ARE NOT READY");
+        document.getElementById('status').textContent = "📜 Claiming wisdom... (burning 1 HOP)";
+        const receipt = await tx.wait();
+        const wisdom = "Follow: https://x.com/thewhiterabbitM  ";
+        document.getElementById('wisdomOutput').textContent = wisdom;
+        document.getElementById('wisdomOutput').classList.remove('hidden');
+        updateStatus();
+      } catch (e) {
+        console.error(e);
+        let msg = "⚠️ Claim failed. Did you hop? Do you have 1 HOP?";
+        if (e.code === "UNPREDICTABLE_GAS_LIMIT") msg += " (Try increasing gas limit)";
+        document.getElementById('status').textContent = msg;
       }
-    };
+    });
   </script>
 </body>
 </html>
