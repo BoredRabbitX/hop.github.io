@@ -17,48 +17,16 @@
     body {
       background: linear-gradient(135deg, var(--darker), var(--dark));
       color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       min-height: 100vh;
       padding: 20px;
-      background-attachment: fixed;
     }
     .container { max-width: 800px; margin: 0 auto; }
-    header {
-      text-align: center;
-      padding: 40px 0 20px;
-    }
-    .logo {
-      font-size: 3.5rem;
-      margin-bottom: 10px;
-      animation: glow 2s infinite alternate;
-    }
-    @keyframes glow {
-      from { text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-      to { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 165, 0, 0.6); }
-    }
-    h1 {
-      font-size: 2.8rem;
-      background: linear-gradient(to right, var(--gold), var(--purple));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin-bottom: 15px;
-      letter-spacing: 1px;
-    }
-    .subtitle {
-      color: #a0a0c0;
-      font-size: 1.1rem;
-      max-width: 600px;
-      margin: 0 auto 30px;
-      line-height: 1.6;
-    }
     .card {
       background: rgba(15, 15, 30, 0.8);
-      border: 1px solid rgba(255, 215, 0, 0.2);
       border-radius: 20px;
       padding: 30px;
       margin: 30px 0;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
     .btn {
       background: linear-gradient(90deg, var(--purple), #ff6b6b);
@@ -68,410 +36,207 @@
       border-radius: 12px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 1.1rem;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
       width: 100%;
       max-width: 300px;
       margin: 10px auto;
       display: block;
     }
-    .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(138, 43, 226, 0.6);
-    }
-    .btn:disabled {
-      opacity: 0.6;
-      transform: none;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .hidden { display: none !important; }
     .error { 
       color: var(--error); 
       margin: 20px 0; 
       padding: 15px;
       background: rgba(255, 107, 107, 0.1);
-      border-left: 4px solid var(--error);
       border-radius: 10px;
-      font-family: 'Courier New', monospace;
-      white-space: pre-wrap;
-      line-height: 1.5;
-    }
-    .status-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
-      margin: 25px 0;
-    }
-    .status-item {
-      text-align: center;
-      padding: 15px;
-      background: rgba(30, 30, 50, 0.5);
-      border-radius: 12px;
-      border: 1px solid rgba(255, 215, 0, 0.1);
-    }
-    .status-value {
-      font-size: 2rem;
-      font-weight: bold;
-      margin: 10px 0;
-      color: var(--gold);
     }
     .wisdom-box {
       background: rgba(138, 43, 226, 0.15);
-      border: 1px solid rgba(138, 43, 226, 0.3);
       padding: 25px;
       border-radius: 16px;
       margin-top: 25px;
       text-align: center;
     }
-    .wisdom-box p {
-      font-style: italic;
-      margin-bottom: 15px;
-      color: var(--gold);
-      font-size: 1.2rem;
-    }
-    .twitter-link {
-      display: inline-block;
-      background: var(--gold);
-      color: #0a0a14;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
-    .twitter-link:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-    }
-    .rabbit-animation {
-      text-align: center;
-      margin: 25px 0;
-    }
-    .rabbit {
-      font-size: 5rem;
-      display: inline-block;
-      animation: hop 2.5s infinite;
-    }
-    @keyframes hop {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      30% { transform: translateY(-40px) rotate(-10deg); }
-      70% { transform: translateY(-20px) rotate(10deg); }
-    }
-    footer {
-      text-align: center;
-      color: #666;
-      padding: 30px 0 10px;
-      font-size: 0.9rem;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <div class="logo">🐇</div>
-      <h1>The White Rabbit</h1>
-      <p class="subtitle">Burn HOP tokens to reveal the truth. Deployed on Asset-Hub Westend Testnet.</p>
-    </header>
-
-    <div class="rabbit-animation">
-      <div class="rabbit">🐇</div>
+    <div style="text-align: center; padding: 40px 0;">
+      <div style="font-size: 3.5rem; margin-bottom: 10px;">🐇</div>
+      <h1 style="font-size: 2.8rem; background: linear-gradient(to right, var(--gold), var(--purple)); -webkit-background-clip: text; background-clip: text; color: transparent;">The White Rabbit</h1>
     </div>
 
     <div id="errorBox" class="error hidden"></div>
 
     <div id="connectSection" class="card">
-      <h2 style="text-align: center; margin-bottom: 25px; color: var(--gold);">Begin Your Journey</h2>
       <button id="connectBtn" class="btn">🦊 Connect Wallet</button>
     </div>
 
     <div id="dashboard" class="card hidden">
-      <h2 style="text-align: center; margin-bottom: 20px; color: var(--gold);">Your Status</h2>
+      <div>Account: <span id="accountDisplay">-</span></div>
+      <div>HOP Balance: <span id="balanceDisplay">0.00</span></div>
       
-      <div>Account: <span id="accountDisplay" style="color: var(--gold);">-</span></div>
-      <div style="margin: 15px 0;">HOP Balance: <span id="balanceDisplay" style="color: var(--gold);">0.00</span></div>
-      
-      <div class="status-grid">
-        <div class="status-item">
-          <div>Hopped</div>
-          <div class="status-value" id="hoppedStatus">❌</div>
-        </div>
-        <div class="status-item">
-          <div>Wisdom Claimed</div>
-          <div class="status-value" id="wisdomStatus">❌</div>
-        </div>
-      </div>
-
       <button id="hopBtn" class="btn" disabled>✨ Execute Hop()</button>
       <button id="claimBtn" class="btn" disabled>📖 Claim Wisdom</button>
 
       <div id="wisdomBox" class="wisdom-box hidden">
         <p>"Follow: https://x.com/thewhiterabbitM"</p>
-        <a href="https://x.com/thewhiterabbitM" target="_blank" class="twitter-link">
+        <a href="https://x.com/thewhiterabbitM" target="_blank" style="display: inline-block; background: var(--gold); color: #0a0a14; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
           Follow @thewhiterabbitM →
         </a>
       </div>
     </div>
-
-    <footer>
-      <p>Contract: 0x087E...1Ad9 | Asset-Hub Westend Testnet</p>
-    </footer>
   </div>
 
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
   <script>
-    // === CONFIGURAZIONE PER RABBITTOKENMICRO SU ASSET-HUB WESTEND ===
-    const NETWORK_CONFIG = {
-      chainName: "Asset-Hub Westend Testnet",
-      rpcUrls: ["https://westend-asset-hub-eth-rpc.polkadot.io"],
-      chainId: 420420421, // DECIMALE
-      nativeCurrency: { name: "WND", symbol: "WND", decimals: 18 },
-      blockExplorerUrls: ["https://assethub-westend.subscan.io"]
-    };
-
     const CONTRACT_ADDRESS = "0x087Ea7C436cd9689C9aad64E5B76C6C1C3771Ad9";
-    
-    // Function selectors per RabbitTokenMicro
-    const FUNCTION_SELECTORS = {
-      balanceOf: "0x70a08231",     // balanceOf(address)
-      hasHopped: "0xb05c91c5",      // hasHopped(address)
-      hasClaimed: "0xd379336d",     // hasClaimed(address)
-      hop: "0x9c67067f",            // hop()
-      claimWisdom: "0x7e8f90a3",    // claimWisdom()
-      transfer: "0xa9059cbb"        // transfer(address,uint256)
-    };
+    const ASSET_HUB_WESTEND_CHAIN_ID = "0x1905F5D5"; // 420420421
 
-    // === ELEMENTI DOM ===
-    const connectSection = document.getElementById('connectSection');
-    const dashboard = document.getElementById('dashboard');
+    const CONTRACT_ABI = [
+      "function balanceOf(address) view returns (uint256)",
+      "function hasHopped(address) view returns (bool)",
+      "function hasClaimed(address) view returns (bool)",
+      "function hop()",
+      "function claimWisdom()"
+    ];
+
+    // DOM
     const connectBtn = document.getElementById('connectBtn');
+    const dashboard = document.getElementById('dashboard');
     const accountDisplay = document.getElementById('accountDisplay');
     const balanceDisplay = document.getElementById('balanceDisplay');
-    const hoppedStatus = document.getElementById('hoppedStatus');
-    const wisdomStatus = document.getElementById('wisdomStatus');
     const hopBtn = document.getElementById('hopBtn');
     const claimBtn = document.getElementById('claimBtn');
     const wisdomBox = document.getElementById('wisdomBox');
     const errorBox = document.getElementById('errorBox');
 
-    let currentAccount = null;
+    let provider;
+    let signer;
+    let contract;
+    let currentAccount;
 
-    // === UTILS ===
     function showError(msg) {
-      console.error("[The White Rabbit Error]", msg);
       errorBox.textContent = msg;
       errorBox.classList.remove('hidden');
     }
 
-    function hideError() {
-      errorBox.classList.add('hidden');
-    }
-
-    function shortAddress(addr) {
-      return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "0x...0000";
-    }
-
-    function padAddress(address) {
-      return address.toLowerCase().replace('0x', '').padStart(64, '0');
-    }
-
-    // === INIT ===
-    async function init() {
-      if (!window.ethereum) {
-        showError("🦊 MetaMask not detected.\n\nInstall MetaMask to interact with The White Rabbit.");
-        return;
-      }
-
-      // Prova connessione automatica
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accounts.length > 0) {
-          const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-          if (parseInt(currentChainId) === NETWORK_CONFIG.chainId) {
-            await setupAccount(accounts[0]);
-            return;
-          }
-        }
-      } catch (err) {
-        console.log("Auto-connect skipped");
-      }
-
-      connectBtn.addEventListener('click', connectWallet);
-      hopBtn.addEventListener('click', executeHop);
-      claimBtn.addEventListener('click', claimWisdom);
-    }
-
-    // === CONNESSIONE WALLET ===
     async function connectWallet() {
-      hideError();
-      
       if (!window.ethereum) {
-        showError("🦊 MetaMask not found.");
+        showError("🦊 MetaMask not detected.");
         return;
       }
 
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        if (!accounts || accounts.length === 0) {
-          throw new Error("No accounts found");
-        }
-
-        // Verifica rete
-        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-        if (parseInt(currentChainId) !== NETWORK_CONFIG.chainId) {
-          const hexChainId = '0x' + NETWORK_CONFIG.chainId.toString(16);
-          
-          try {
-            await window.ethereum.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: hexChainId }]
-            });
-          } catch (switchError) {
-            if (switchError.code === 4902) {
-              // Aggiungi rete
-              await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: hexChainId,
-                  chainName: NETWORK_CONFIG.chainName,
-                  rpcUrls: NETWORK_CONFIG.rpcUrls,
-                  nativeCurrency: NETWORK_CONFIG.nativeCurrency,
-                  blockExplorerUrls: NETWORK_CONFIG.blockExplorerUrls
-                }]
-              });
-            } else {
-              throw new Error(`Network switch failed: ${switchError.message}`);
-            }
-          }
-        }
-
-        await setupAccount(accounts[0]);
-      } catch (err) {
-        if (err.code === 4001) {
-          showError("🦊 Connection cancelled.");
-        } else {
-          showError(`🦊 Connection error:\n${err.message || 'Check MetaMask and try again.'}`);
-        }
-      }
-    }
-
-    // === SETUP ACCOUNT ===
-    async function setupAccount(account) {
-      currentAccount = account;
-      accountDisplay.textContent = shortAddress(account);
-      connectSection.classList.add('hidden');
-      dashboard.classList.remove('hidden');
-      await refreshData();
-    }
-
-    // === REFRESH DATI ===
-    async function refreshData() {
-      if (!currentAccount) return;
-
-      try {
-        // Chiamate simultanee per efficienza
-        const balanceHex = await window.ethereum.request({
-          method: 'eth_call',
-          params: [{
-            to: CONTRACT_ADDRESS,
-             FUNCTION_SELECTORS.balanceOf + padAddress(currentAccount)
-          }, 'latest']
-        });
-        
-        const hoppedHex = await window.ethereum.request({
-          method: 'eth_call',
-          params: [{
-            to: CONTRACT_ADDRESS,
-             FUNCTION_SELECTORS.hasHopped + padAddress(currentAccount)
-          }, 'latest']
-        });
-        
-        const claimedHex = await window.ethereum.request({
-          method: 'eth_call',
-          params: [{
-            to: CONTRACT_ADDRESS,
-             FUNCTION_SELECTORS.hasClaimed + padAddress(currentAccount)
-          }, 'latest']
-        });
-
-        // Converti risultati
-        const balance = parseInt(balanceHex || "0x0", 16) / 1e18;
-        const hasHopped = parseInt(hoppedHex || "0x0", 16) === 1;
-        const hasClaimed = parseInt(claimedHex || "0x0", 16) === 1;
-
-        // Aggiorna UI
-        balanceDisplay.textContent = balance.toFixed(2);
-        hoppedStatus.textContent = hasHopped ? '✅' : '❌';
-        wisdomStatus.textContent = hasClaimed ? '✅' : '❌';
-
-        hopBtn.disabled = hasHopped;
-        claimBtn.disabled = !hasHopped || hasClaimed;
-
-        if (hasClaimed) {
-          wisdomBox.classList.remove('hidden');
-        }
-      } catch (err) {
-        console.error("Refresh error:", err);
-        showError(`🦊 Data fetch failed:\n${err.message || 'Ensure you are on Asset-Hub Westend.'}`);
-      }
-    }
-
-    // === AZIONI ===
-    async function executeHop() {
-      if (!currentAccount) {
-        showError("🦊 Connect wallet first.");
-        return;
-      }
-
-      try {
+        // Richiedi rete AssetHub Westend
         await window.ethereum.request({
-          method: 'eth_sendTransaction',
-          params: [{
-            from: currentAccount,
-            to: CONTRACT_ADDRESS,
-             FUNCTION_SELECTORS.hop
-          }]
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: ASSET_HUB_WESTEND_CHAIN_ID }]
         });
-        await new Promise(r => setTimeout(r, 2000)); // Attendi conferma
+      } catch (switchError) {
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: ASSET_HUB_WESTEND_CHAIN_ID,
+              chainName: 'Asset-Hub Westend Testnet',
+              rpcUrls: ['https://westend-asset-hub-eth-rpc.polkadot.io'],
+              nativeCurrency: { name: 'WND', symbol: 'WND', decimals: 18 },
+              blockExplorerUrls: ['https://assethub-westend.subscan.io']
+            }]
+          });
+        }
+      }
+
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        currentAccount = await signer.getAddress();
+
+        accountDisplay.textContent = currentAccount.slice(0,6) + "..." + currentAccount.slice(-4);
+        connectBtn.closest('.card').classList.add('hidden');
+        dashboard.classList.remove('hidden');
+
         await refreshData();
       } catch (err) {
         if (err.code !== 4001) {
-          showError(`🦊 Hop failed:\n${err.message || 'Check gas balance.'}`);
+          showError("🦊 Connection failed: " + err.message);
+        }
+      }
+    }
+
+    async function refreshData() {
+      if (!contract || !currentAccount) return;
+
+      try {
+        // LEGGI TUTTI I DATI IN UNA VOLTA (evita chiamate multiple fallibili)
+        const results = await contract.provider.call({
+          to: CONTRACT_ADDRESS,
+          data: '0x70a08231' + currentAccount.toLowerCase().replace('0x', '').padStart(64, '0') + // balanceOf
+                  'b05c91c5' + currentAccount.toLowerCase().replace('0x', '').padStart(64, '0') + // hasHopped
+                  'd379336d' + currentAccount.toLowerCase().replace('0x', '').padStart(64, '0')    // hasClaimed
+        }, 'latest');
+
+        // Decodifica manuale (ethers lo fa automaticamente, ma qui usiamo batch call)
+        const balanceHex = '0x' + results.slice(2, 66);
+        const hoppedHex = '0x' + results.slice(66, 130);
+        const claimedHex = '0x' + results.slice(130, 194);
+
+        const balance = parseFloat(ethers.utils.formatUnits(balanceHex, 18)).toFixed(2);
+        const hasHopped = hoppedHex === '0x0000000000000000000000000000000000000000000000000000000000000001';
+        const hasClaimed = claimedHex === '0x0000000000000000000000000000000000000000000000000000000000000001';
+
+        balanceDisplay.textContent = balance;
+        hopBtn.disabled = hasHopped;
+        claimBtn.disabled = !hasHopped || hasClaimed;
+        if (hasClaimed) wisdomBox.classList.remove('hidden');
+      } catch (err) {
+        // Se fallisce, prova con chiamate separate (fallback)
+        try {
+          const balance = await contract.balanceOf(currentAccount);
+          const hasHopped = await contract.hasHopped(currentAccount);
+          const hasClaimed = await contract.hasClaimed(currentAccount);
+
+          balanceDisplay.textContent = ethers.utils.formatUnits(balance, 18);
+          hopBtn.disabled = hasHopped;
+          claimBtn.disabled = !hasHopped || hasClaimed;
+          if (hasClaimed) wisdomBox.classList.remove('hidden');
+        } catch (e) {
+          showError("🦊 Failed to read contract data. Ensure you're on Asset-Hub Westend.");
+        }
+      }
+    }
+
+    async function executeHop() {
+      try {
+        const tx = await contract.hop();
+        await tx.wait();
+        await refreshData();
+      } catch (err) {
+        if (err.code !== 4001) {
+          showError("🦊 Hop failed: " + err.message);
         }
       }
     }
 
     async function claimWisdom() {
-      if (!currentAccount) {
-        showError("🦊 Connect wallet first.");
-        return;
-      }
-
       try {
-        await window.ethereum.request({
-          method: 'eth_sendTransaction',
-          params: [{
-            from: currentAccount,
-            to: CONTRACT_ADDRESS,
-             FUNCTION_SELECTORS.claimWisdom
-          }]
-        });
-        await new Promise(r => setTimeout(r, 2000));
+        const tx = await contract.claimWisdom();
+        await tx.wait();
         wisdomBox.classList.remove('hidden');
         await refreshData();
       } catch (err) {
         if (err.code !== 4001) {
-          if (err.message?.includes("need 1 HOP")) {
-            showError("🦊 You need at least 1 HOP token to claim wisdom.");
-          } else {
-            showError(`🦊 Claim failed:\n${err.message || 'Check your HOP balance.'}`);
-          }
+          showError("🦊 Claim failed: " + err.message);
         }
       }
     }
 
-    // === AVVIA ===
-    document.addEventListener('DOMContentLoaded', init);
+    connectBtn.addEventListener('click', connectWallet);
+    hopBtn.addEventListener('click', executeHop);
+    claimBtn.addEventListener('click', claimWisdom);
   </script>
 </body>
 </html>
