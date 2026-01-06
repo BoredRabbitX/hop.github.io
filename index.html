@@ -415,13 +415,13 @@
         }
     ];
 
-  const WESTEND_ASSET_HUB_PARAMS = {
-    chainId: "0x190a0714", // 420420420 decimal
+ const WESTEND_ASSET_HUB_PARAMS = {
+    chainId: "0x190f1b45", // Il valore corretto rilevato dal tuo errore (420420421)
     chainName: "Westend Asset Hub",
     nativeCurrency: { 
         name: "Westend", 
         symbol: "WND", 
-        decimals: 18 // MetaMask richiede 18 per compatibilità EVM
+        decimals: 18 // Lasciamo 18 per MetaMask
     },
     rpcUrls: ["https://westend-asset-hub-eth-rpc.polkadot.io"],
     blockExplorerUrls: ["https://assethub-westend.subscan.io/"]
@@ -593,4 +593,5 @@
 
 </body>
 </html>
+
 
