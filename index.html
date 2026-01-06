@@ -1,238 +1,305 @@
-
-                        <!DOCTYPE html>
-                        <html lang="en">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <style>
-                body {
-                  background-color: white; /* Ensure the iframe has a white background */
-                }
-
-                
-              </style>
-                        </head>
-                        <body>
-                            
-
-              <script>
-                              // CONFIGURAZIONE UFFICIALE ASSET-HUB WESTEND
-const CONTRACT_ADDRESS = "0x087Ea7C436cd9689C9aad64E5B76C6C1C3771Ad9";
-const ASSET_HUB_WESTEND_RPC = "https://westend-asset-hub-eth-rpc.polkadot.io";
-const ASSET_HUB_WESTEND_CHAIN_ID = "0x1905F5D5"; // 420420421 in esadecimale
-
-const CONTRACT_ABI = [
-  "function balanceOf(address) view returns (uint256)",
-  "function hop()",
-  "function claimWisdom()",
-  "function hasHopped(address) view returns (bool)",
-  "function hasClaimed(address) view returns (bool)"
-];
-
-// ELEMENTI DOM
-const connectBtn = document.getElementById('connect-btn');
-const accountInfo = document.getElementById('account-info');
-const addressDisplay = document.getElementById('address-display');
-const dashboard = document.getElementById('dashboard');
-const hopBalance = document.getElementById('hop-balance');
-const hoppedStatus = document.getElementById('hopped-status');
-const wisdomStatus = document.getElementById('wisdom-status');
-const hopBtn = document.getElementById('hop-btn');
-const claimBtn = document.getElementById('claim-btn');
-const wisdomSection = document.getElementById('wisdom-section');
-const errorModal = document.getElementById('error-modal');
-const errorMessage = document.getElementById('error-message');
-const closeError = document.getElementById('close-error');
-
-let provider = null;
-let signer = null;
-let contract = null;
-let currentAccount = null;
-
-// INIZIALIZZAZIONE
-async function init() {
-  // Verifica se MetaMask è presente
-  if (!window.ethereum) {
-    showError('MetaMask non rilevato. Installalo per interagire con la dApp.');
-    return;
-  }
-
-  // Aggiungi AssetHub Westend a MetaMask se non presente
-  try {
-    await window.ethereum.request({
-      method: 'wallet_addEthereumChain',
-      params: [{
-        chainId: ASSET_HUB_WESTEND_CHAIN_ID,
-        chainName: 'Polkadot AssetHub Westend',
-        rpcUrls: [ASSET_HUB_WESTEND_RPC],
-        nativeCurrency: {
-          name: 'WND',
-          symbol: 'WND',
-          decimals: 18
-        },
-        blockExplorerUrls: ['https://assethub-westend.subscan.io']
-      }]
-    });
-  } catch (addError) {
-    // La rete potrebbe già essere aggiunta - ignora l'errore
-    if (addError.code !== 4902) {
-      console.warn('Could not add AssetHub Westend network:', addError);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>White Rabbit DApp</title>
+  <style>
+    :root {
+      --primary: #8a2be2;
+      --dark: #0f0f1b;
+      --darker: #0a0a14;
+      --text: #e0e0ff;
     }
-  }
-
-  // Prova connessione automatica
-  await autoConnect();
-  
-  // Event listeners
-  connectBtn.addEventListener('click', connectWallet);
-  hopBtn.addEventListener('click', executeHop);
-  claimBtn.addEventListener('click', claimWisdom);
-  closeError.addEventListener('click', () => errorModal.classList.add('hidden'));
-  
-  // Ricarica su cambio account/rete
-  window.ethereum.on('accountsChanged', () => location.reload());
-  window.ethereum.on('chainChanged', () => location.reload());
-}
-
-// CONNESSIONE AUTOMATICA
-async function autoConnect() {
-  try {
-    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-    if (accounts.length > 0) {
-      // Forza la rete AssetHub Westend
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: ASSET_HUB_WESTEND_CHAIN_ID }]
-      });
-      await setupWallet(accounts[0]);
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, var(--darker), var(--dark));
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 20px;
     }
-  } catch (err) {
-    // Silenzioso - aspetta connessione manuale
-    console.log('Auto-connect non disponibile');
-  }
-}
-
-// CONNESSIONE MANUALE
-async function connectWallet() {
-  if (!window.ethereum) {
-    showError('MetaMask non rilevato');
-    return;
-  }
-
-  try {
-    // Richiedi account e cambia rete
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: ASSET_HUB_WESTEND_CHAIN_ID }]
-    });
-    
-    await setupWallet(accounts[0]);
-  } catch (err) {
-    if (err.code === 4001) {
-      showError('Connessione annullata');
-    } else {
-      showError('Impossibile connettersi ad AssetHub Westend');
-      console.error('Connection error:', err);
+    .container { max-width: 800px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 1.5rem; }
+    .logo span { font-size: 2rem; }
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
     }
-  }
-}
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hero { text-align: center; padding: 40px 0; }
+    .hero h1 { font-size: 2.5rem; margin-bottom: 20px; }
+    .hero p { color: #a0a0c0; max-width: 600px; margin: 0 auto; }
+    .dashboard { background: rgba(25,25,45,0.7); padding: 30px; border-radius: 16px; margin: 30px 0; }
+    .stats { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; }
+    .stat { text-align: center; padding: 15px; }
+    .stat-value { font-size: 1.8rem; font-weight: bold; margin: 10px 0; }
+    .hidden { display: none !important; }
+    .error { color: #ff6b6b; margin: 15px 0; padding: 10px; background: rgba(255,107,107,0.1); border-radius: 8px; }
+    .wisdom { background: rgba(138,43,226,0.2); padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; }
+    .rabbit { font-size: 4rem; animation: hop 2s infinite; display: inline-block; }
+    @keyframes hop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span>🐇</span>
+        <div>White Rabbit</div>
+      </div>
+      <button id="connectBtn" class="btn">Connect Wallet</button>
+    </header>
 
-// CONFIGURAZIONE WALLET CON PROVIDER CORRETTO
-async function setupWallet(account) {
-  currentAccount = account;
-  
-  // Usa direttamente la RPC di AssetHub Westend per evitare problemi
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  signer = provider.getSigner();
-  
-  // Verifica connessione alla rete corretta
-  const network = await provider.getNetwork();
-  if (network.chainId.toString() !== "420420421") {
-    showError('Sei su una rete diversa. Seleziona AssetHub Westend in MetaMask.');
-    return;
-  }
-  
-  contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-  
-  // Aggiorna UI
-  addressDisplay.textContent = `${account.slice(0, 6)}...${account.slice(-4)}`;
-  connectBtn.classList.add('hidden');
-  accountInfo.classList.remove('hidden');
-  dashboard.classList.remove('hidden');
-  
-  await refreshData();
-}
+    <div class="hero">
+      <h1>Follow the Rabbit</h1>
+      <p>Interact with the HOP token on Polkadot AssetHub Westend</p>
+      <div class="rabbit">🐇</div>
+    </div>
 
-// AGGIORNA DATI
-async function refreshData() {
-  if (!contract || !currentAccount) return;
-  
-  try {
-    const balance = await contract.balanceOf(currentAccount);
-    const hasHopped = await contract.hasHopped(currentAccount);
-    const hasClaimed = await contract.hasClaimed(currentAccount);
-    
-    hopBalance.textContent = ethers.utils.formatUnits(balance, 18);
-    hoppedStatus.textContent = hasHopped ? '✅' : '❌';
-    wisdomStatus.textContent = hasClaimed ? '✅' : '❌';
-    
-    hopBtn.disabled = hasHopped;
-    claimBtn.disabled = !hasHopped || hasClaimed;
-    
-    if (hasClaimed) {
-      wisdomSection.classList.remove('hidden');
+    <div id="errorBox" class="error hidden"></div>
+
+    <div id="dashboard" class="dashboard hidden">
+      <div>Account: <span id="accountDisplay">-</span></div>
+      <div>HOP Balance: <span id="balanceDisplay">0.00</span></div>
+      
+      <div class="stats">
+        <div class="stat">
+          <div>Hopped</div>
+          <div class="stat-value" id="hoppedStatus">❌</div>
+        </div>
+        <div class="stat">
+          <div>Wisdom</div>
+          <div class="stat-value" id="wisdomStatus">❌</div>
+        </div>
+      </div>
+
+      <button id="hopBtn" class="btn" disabled>Execute Hop()</button>
+      <button id="claimBtn" class="btn" disabled>Claim Wisdom</button>
+
+      <div id="wisdomBox" class="wisdom hidden">
+        <p>"The truth is revealed to those who hop."</p>
+        <p><a href="https://x.com/thewhiterabbitM" target="_blank" style="color:#8a2be2;">Follow @thewhiterabbitM</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // CONFIG
+    const CONTRACT_ADDRESS = "0x087Ea7C436cd9689C9aad64E5B76C6C1C3771Ad9";
+    const CHAIN_ID = "0x1905F5D5"; // AssetHub Westend
+
+    // ABI in formato compatibile
+    const CONTRACT_ABI = [
+      {"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"hop","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[],"name":"claimWisdom","outputs":[],"stateMutability":"nonpayable","type":"function"},
+      {"inputs":[{"name":"account","type":"address"}],"name":"hasHopped","outputs":[{"name":"","type":"bool"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"name":"account","type":"address"}],"name":"hasClaimed","name":"","type":"bool"}],"stateMutability":"view","type":"function"}
+    ];
+
+    // DOM
+    const connectBtn = document.getElementById('connectBtn');
+    const dashboard = document.getElementById('dashboard');
+    const accountDisplay = document.getElementById('accountDisplay');
+    const balanceDisplay = document.getElementById('balanceDisplay');
+    const hoppedStatus = document.getElementById('hoppedStatus');
+    const wisdomStatus = document.getElementById('wisdomStatus');
+    const hopBtn = document.getElementById('hopBtn');
+    const claimBtn = document.getElementById('claimBtn');
+    const wisdomBox = document.getElementById('wisdomBox');
+    const errorBox = document.getElementById('errorBox');
+
+    let currentAccount = null;
+    let web3Provider = null;
+
+    // UTILS
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.classList.remove('hidden');
+      setTimeout(() => errorBox.classList.add('hidden'), 5000);
     }
-  } catch (err) {
-    console.error('Refresh error:', err);
-    showError('Errore nella lettura dei dati. Verifica la rete.');
-  }
-}
 
-// ESEGUE HOP
-async function executeHop() {
-  if (!contract) return;
-  
-  try {
-    const tx = await contract.hop();
-    await tx.wait();
-    await refreshData();
-  } catch (err) {
-    if (err.code !== 4001) {
-      showError('Hop fallito. Verifica saldo WND e HOP.');
-      console.error('Hop error:', err);
+    function shortAddress(addr) {
+      return addr ? addr.slice(0,6) + "..." + addr.slice(-4) : "";
     }
-  }
-}
 
-// CLAIM WISDOM
-async function claimWisdom() {
-  if (!contract) return;
-  
-  try {
-    const tx = await contract.claimWisdom();
-    await tx.wait();
-    wisdomSection.classList.remove('hidden');
-    await refreshData();
-  } catch (err) {
-    if (err.code !== 4001) {
-      showError('Claim fallito. Necessario almeno 1 HOP token.');
-      console.error('Claim error:', err);
+    // INIT
+    async function init() {
+      if (typeof window.ethereum !== 'undefined') {
+        web3Provider = window.ethereum;
+        await autoConnect();
+      } else {
+        showError("MetaMask not detected. Install it to proceed.");
+      }
+
+      connectBtn.addEventListener('click', connectWallet);
+      hopBtn.addEventListener('click', executeHop);
+      claimBtn.addEventListener('click', claimWisdom);
     }
-  }
-}
 
-// MOSTRA ERRORE
-function showError(message) {
-  errorMessage.textContent = message;
-  errorModal.classList.remove('hidden');
-}
+    async function autoConnect() {
+      try {
+        const accounts = await web3Provider.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          await setupAccount(accounts[0]);
+        }
+      } catch (err) {
+        console.log("Auto-connect failed");
+      }
+    }
 
-// AVVIA L'APPLICAZIONE
-document.addEventListener('DOMContentLoaded', init);
+    async function connectWallet() {
+      try {
+        const accounts = await web3Provider.request({ method: 'eth_requestAccounts' });
+        if (accounts.length === 0) throw new Error("No accounts");
+        await setupAccount(accounts[0]);
+      } catch (err) {
+        if (err.code !== 4001) {
+          showError("Connection failed. Make sure you're on AssetHub Westend.");
+        }
+      }
+    }
 
+    async function setupAccount(account) {
+      currentAccount = account;
+      accountDisplay.textContent = shortAddress(account);
+      connectBtn.classList.add('hidden');
+      dashboard.classList.remove('hidden');
+      await refreshData();
+    }
 
-              </script>
-                        </body>
-                        </html>
-                    
+    async function refreshData() {
+      if (!currentAccount) return;
+
+      try {
+        // Leggi balanceOf
+        const balance = await web3Provider.request({
+          method: 'eth_call',
+          params: [{
+            to: CONTRACT_ADDRESS,
+            data: web3Provider.constructor.encodeFunctionData(
+              {"name":"balanceOf","type":"function","inputs":[{"name":"account","type":"address"}],"outputs":[{"name":"","type":"uint256"}]},
+              [currentAccount]
+            )
+          }, 'latest']
+        });
+
+        // Leggi hasHopped
+        const hopped = await web3Provider.request({
+          method: 'eth_call',
+          params: [{
+            to: CONTRACT_ADDRESS,
+            data: web3Provider.constructor.encodeFunctionData(
+              {"name":"hasHopped","type":"function","inputs":[{"name":"account","type":"address"}],"outputs":[{"name":"","type":"bool"}]},
+              [currentAccount]
+            )
+          }, 'latest']
+        });
+
+        // Leggi hasClaimed
+        const claimed = await web3Provider.request({
+          method: 'eth_call',
+          params: [{
+            to: CONTRACT_ADDRESS,
+            data: web3Provider.constructor.encodeFunctionData(
+              {"name":"hasClaimed","type":"function","inputs":[{"name":"account","type":"address"}],"outputs":[{"name":"","type":"bool"}]},
+              [currentAccount]
+            )
+          }, 'latest']
+        });
+
+        // Converti risultati
+        const balanceNum = parseInt(balance, 16) / 1e18;
+        const hasHopped = parseInt(hopped, 16) === 1;
+        const hasClaimed = parseInt(claimed, 16) === 1;
+
+        balanceDisplay.textContent = balanceNum.toFixed(2);
+        hoppedStatus.textContent = hasHopped ? '✅' : '❌';
+        wisdomStatus.textContent = hasClaimed ? '✅' : '❌';
+
+        hopBtn.disabled = hasHopped;
+        claimBtn.disabled = !hasHopped || hasClaimed;
+
+        if (hasClaimed) {
+          wisdomBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error("Refresh error:", err);
+        showError("Failed to read data. Check network.");
+      }
+    }
+
+    // Polyfill per encodeFunctionData (se non supportato)
+    if (typeof web3Provider.constructor.encodeFunctionData !== 'function') {
+      web3Provider.constructor.encodeFunctionData = function(abi, params) {
+        // Solo per le funzioni che usiamo
+        if (abi.name === 'balanceOf') {
+          const addr = params[0].toLowerCase().replace('0x', '');
+          return '0x70a08231' + addr.padStart(64, '0');
+        }
+        if (abi.name === 'hasHopped') {
+          const addr = params[0].toLowerCase().replace('0x', '');
+          return '0xb05c91c5' + addr.padStart(64, '0');
+        }
+        if (abi.name === 'hasClaimed') {
+          const addr = params[0].toLowerCase().replace('0x', '');
+          return '0xd379336d' + addr.padStart(64, '0');
+        }
+        throw new Error('Unsupported function');
+      };
+    }
+
+    async function executeHop() {
+      try {
+        await web3Provider.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: currentAccount,
+            to: CONTRACT_ADDRESS,
+            data: '0x9c67067f' // keccak256("hop()") truncated to 4 bytes
+          }]
+        });
+        await new Promise(r => setTimeout(r, 2000)); // Wait for confirmation
+        await refreshData();
+      } catch (err) {
+        if (err.code !== 4001) {
+          showError("Hop failed. Check gas balance.");
+        }
+      }
+    }
+
+    async function claimWisdom() {
+      try {
+        await web3Provider.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from: currentAccount,
+            to: CONTRACT_ADDRESS,
+            data: '0x7e8f90a3' // keccak256("claimWisdom()") truncated
+          }]
+        });
+        await new Promise(r => setTimeout(r, 2000));
+        wisdomBox.classList.remove('hidden');
+        await refreshData();
+      } catch (err) {
+        if (err.code !== 4001) {
+          showError("Claim failed. Need 1 HOP token.");
+        }
+      }
+    }
+
+    // START
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
+
