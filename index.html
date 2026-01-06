@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>White Rabbit DApp</title>
+  <title>White Rabbit DApp | AssetHub Westend</title>
   <style>
     :root {
       --primary: #8a2be2;
       --dark: #0f0f1b;
       --darker: #0a0a14;
       --text: #e0e0ff;
+      --error: #ff6b6b;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -43,10 +44,32 @@
     .stat { text-align: center; padding: 15px; }
     .stat-value { font-size: 1.8rem; font-weight: bold; margin: 10px 0; }
     .hidden { display: none !important; }
-    .error { color: #ff6b6b; margin: 15px 0; padding: 10px; background: rgba(255,107,107,0.1); border-radius: 8px; }
-    .wisdom { background: rgba(138,43,226,0.2); padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; }
-    .rabbit { font-size: 4rem; animation: hop 2s infinite; display: inline-block; }
-    @keyframes hop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+    .error { 
+      color: var(--error); 
+      margin: 15px 0; 
+      padding: 12px; 
+      background: rgba(255, 107, 107, 0.15);
+      border-left: 4px solid var(--error);
+      border-radius: 8px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    .wisdom { 
+      background: rgba(138,43,226,0.2); 
+      padding: 20px; 
+      border-radius: 12px; 
+      margin-top: 20px; 
+      text-align: center; 
+    }
+    .rabbit { 
+      font-size: 4rem; 
+      animation: hop 2s infinite; 
+      display: inline-block; 
+    }
+    @keyframes hop { 
+      0%,100% { transform: translateY(0); } 
+      50% { transform: translateY(-20px); } 
+    }
   </style>
 </head>
 <body>
@@ -61,7 +84,7 @@
 
     <div class="hero">
       <h1>Follow the Rabbit</h1>
-      <p>Interact with the HOP token on Polkadot AssetHub Westend</p>
+      <p>Interact with HOP token on Asset-Hub Westend Testnet</p>
       <div class="rabbit">🐇</div>
     </div>
 
@@ -77,7 +100,7 @@
           <div class="stat-value" id="hoppedStatus">❌</div>
         </div>
         <div class="stat">
-          <div>Wisdom</div>
+          <div>Wisdom Claimed</div>
           <div class="stat-value" id="wisdomStatus">❌</div>
         </div>
       </div>
@@ -87,26 +110,41 @@
 
       <div id="wisdomBox" class="wisdom hidden">
         <p>"The truth is revealed to those who hop."</p>
-        <p><a href="https://x.com/thewhiterabbitM" target="_blank" style="color:#8a2be2;">Follow @thewhiterabbitM</a></p>
+        <p>
+          <a href="https://x.com/thewhiterabbitM" target="_blank" style="color:#8a2be2; text-decoration: none; font-weight: bold;">
+            Follow @thewhiterabbitM →
+          </a>
+        </p>
       </div>
     </div>
   </div>
 
   <script>
-    // CONFIG
+    // === CONFIGURAZIONE ESATTA DA TE FORNITA ===
+    const ASSET_HUB_WESTEND_CONFIG = {
+      chainName: "Asset-Hub Westend Testnet",
+      rpcUrls: ["https://westend-asset-hub-eth-rpc.polkadot.io"],
+      chainId: 420420421, // DECIMALE!
+      nativeCurrency: {
+        name: "WND",
+        symbol: "WND",
+        decimals: 18
+      },
+      blockExplorerUrls: ["https://assethub-westend.subscan.io"]
+    };
+
     const CONTRACT_ADDRESS = "0x087Ea7C436cd9689C9aad64E5B76C6C1C3771Ad9";
-    const CHAIN_ID = "0x1905F5D5"; // AssetHub Westend
 
-    // ABI in formato compatibile
-    const CONTRACT_ABI = [
-      {"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-      {"inputs":[],"name":"hop","outputs":[],"stateMutability":"nonpayable","type":"function"},
-      {"inputs":[],"name":"claimWisdom","outputs":[],"stateMutability":"nonpayable","type":"function"},
-      {"inputs":[{"name":"account","type":"address"}],"name":"hasHopped","outputs":[{"name":"","type":"bool"}],"stateMutability":"view","type":"function"},
-      {"inputs":[{"name":"account","type":"address"}],"name":"hasClaimed","name":"","type":"bool"}],"stateMutability":"view","type":"function"}
-    ];
+    // === FUNCTION SELECTORS (calcolati correttamente) ===
+    const FUNCTION_SELECTORS = {
+      balanceOf: "0x70a08231", // keccak256("balanceOf(address)")[0:4]
+      hasHopped: "0xb05c91c5",  // keccak256("hasHopped(address)")[0:4]
+      hasClaimed: "0xd379336d", // keccak256("hasClaimed(address)")[0:4]
+      hop: "0x9c67067f",        // keccak256("hop()")[0:4]
+      claimWisdom: "0x7e8f90a3" // keccak256("claimWisdom()")[0:4]
+    };
 
-    // DOM
+    // === DOM ===
     const connectBtn = document.getElementById('connectBtn');
     const dashboard = document.getElementById('dashboard');
     const accountDisplay = document.getElementById('accountDisplay');
@@ -119,28 +157,53 @@
     const errorBox = document.getElementById('errorBox');
 
     let currentAccount = null;
-    let web3Provider = null;
 
-    // UTILS
+    // === UTILS ===
     function showError(msg) {
+      console.error("[DApp Error]", msg);
       errorBox.textContent = msg;
       errorBox.classList.remove('hidden');
-      setTimeout(() => errorBox.classList.add('hidden'), 5000);
+    }
+
+    function hideError() {
+      errorBox.classList.add('hidden');
     }
 
     function shortAddress(addr) {
-      return addr ? addr.slice(0,6) + "..." + addr.slice(-4) : "";
+      return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "0x...0000";
     }
 
-    // INIT
+    // === CONVERTITORI ===
+    function hexToDecimal(hex) {
+      return parseInt(hex, 16);
+    }
+
+    function padAddress(address) {
+      return address.toLowerCase().replace('0x', '').padStart(64, '0');
+    }
+
+    function encodeBalanceOf(address) {
+      return FUNCTION_SELECTORS.balanceOf + padAddress(address);
+    }
+
+    function encodeHasHopped(address) {
+      return FUNCTION_SELECTORS.hasHopped + padAddress(address);
+    }
+
+    function encodeHasClaimed(address) {
+      return FUNCTION_SELECTORS.hasClaimed + padAddress(address);
+    }
+
+    // === INIT ===
     async function init() {
-      if (typeof window.ethereum !== 'undefined') {
-        web3Provider = window.ethereum;
-        await autoConnect();
-      } else {
-        showError("MetaMask not detected. Install it to proceed.");
+      if (!window.ethereum) {
+        showError("❌ MetaMask non rilevato.\n\nInstall MetaMask browser extension to proceed.");
+        return;
       }
 
+      // Prova connessione automatica
+      await autoConnect();
+      
       connectBtn.addEventListener('click', connectWallet);
       hopBtn.addEventListener('click', executeHop);
       claimBtn.addEventListener('click', claimWisdom);
@@ -148,23 +211,80 @@
 
     async function autoConnect() {
       try {
-        const accounts = await web3Provider.request({ method: 'eth_accounts' });
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
         if (accounts.length > 0) {
+          // Verifica la rete prima di procedere
+          const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+          if (parseInt(currentChainId) !== ASSET_HUB_WESTEND_CONFIG.chainId) {
+            showError(`❌ Rete errata.\n\nSei su Chain ID ${currentChainId}.\nDevi essere su Asset-Hub Westend (Chain ID ${ASSET_HUB_WESTEND_CONFIG.chainId}).\n\nCambia rete in MetaMask.`);
+            return;
+          }
           await setupAccount(accounts[0]);
         }
       } catch (err) {
-        console.log("Auto-connect failed");
+        console.log("Auto-connect non disponibile:", err.message);
       }
     }
 
     async function connectWallet() {
+      hideError();
+      
+      if (!window.ethereum) {
+        showError("❌ MetaMask non trovato. Installa l'estensione.");
+        return;
+      }
+
       try {
-        const accounts = await web3Provider.request({ method: 'eth_requestAccounts' });
-        if (accounts.length === 0) throw new Error("No accounts");
+        // Richiedi account
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (accounts.length === 0) {
+          throw new Error("Nessun account trovato in MetaMask");
+        }
+
+        // Ottieni chain ID attuale
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const neededChainId = ASSET_HUB_WESTEND_CONFIG.chainId.toString();
+
+        // Se non siamo sulla rete giusta, cambia
+        if (parseInt(currentChainId) !== ASSET_HUB_WESTEND_CONFIG.chainId) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x' + ASSET_HUB_WESTEND_CONFIG.chainId.toString(16) }]
+            });
+          } catch (switchError) {
+            if (switchError.code === 4902) {
+              // Aggiungi la rete
+              try {
+                await window.ethereum.request({
+                  method: 'wallet_addEthereumChain',
+                  params: [{
+                    chainId: '0x' + ASSET_HUB_WESTEND_CONFIG.chainId.toString(16),
+                    chainName: ASSET_HUB_WESTEND_CONFIG.chainName,
+                    rpcUrls: ASSET_HUB_WESTEND_CONFIG.rpcUrls,
+                    nativeCurrency: ASSET_HUB_WESTEND_CONFIG.nativeCurrency,
+                    blockExplorerUrls: ASSET_HUB_WESTEND_CONFIG.blockExplorerUrls
+                  }]
+                });
+              } catch (addError) {
+                showError(`❌ Impossibile aggiungere Asset-Hub Westend:\n${addError.message}`);
+                return;
+              }
+            } else {
+              showError(`❌ Impossibilità di cambiare rete:\n${switchError.message}`);
+              return;
+            }
+          }
+        }
+
         await setupAccount(accounts[0]);
       } catch (err) {
-        if (err.code !== 4001) {
-          showError("Connection failed. Make sure you're on AssetHub Westend.");
+        if (err.code === 4001) {
+          showError("❌ Connessione annullata dall'utente.");
+        } else if (err.message?.includes("user rejected")) {
+          showError("❌ Hai rifiutato la connessione in MetaMask.");
+        } else {
+          showError(`❌ Errore di connessione:\n${err.message || err}`);
         }
       }
     }
@@ -182,47 +302,39 @@
 
       try {
         // Leggi balanceOf
-        const balance = await web3Provider.request({
+        const balanceHex = await window.ethereum.request({
           method: 'eth_call',
           params: [{
             to: CONTRACT_ADDRESS,
-            data: web3Provider.constructor.encodeFunctionData(
-              {"name":"balanceOf","type":"function","inputs":[{"name":"account","type":"address"}],"outputs":[{"name":"","type":"uint256"}]},
-              [currentAccount]
-            )
+            data: encodeBalanceOf(currentAccount)
           }, 'latest']
         });
 
         // Leggi hasHopped
-        const hopped = await web3Provider.request({
+        const hoppedHex = await window.ethereum.request({
           method: 'eth_call',
           params: [{
             to: CONTRACT_ADDRESS,
-            data: web3Provider.constructor.encodeFunctionData(
-              {"name":"hasHopped","type":"function","inputs":[{"name":"account","type":"address"}],"outputs":[{"name":"","type":"bool"}]},
-              [currentAccount]
-            )
+            data: encodeHasHopped(currentAccount)
           }, 'latest']
         });
 
         // Leggi hasClaimed
-        const claimed = await web3Provider.request({
+        const claimedHex = await window.ethereum.request({
           method: 'eth_call',
           params: [{
             to: CONTRACT_ADDRESS,
-            data: web3Provider.constructor.encodeFunctionData(
-              {"name":"hasClaimed","type":"function","inputs":[{"name":"account","type":"address"}],"outputs":[{"name":"","type":"bool"}]},
-              [currentAccount]
-            )
+            data: encodeHasClaimed(currentAccount)
           }, 'latest']
         });
 
-        // Converti risultati
-        const balanceNum = parseInt(balance, 16) / 1e18;
-        const hasHopped = parseInt(hopped, 16) === 1;
-        const hasClaimed = parseInt(claimed, 16) === 1;
+        // Converti
+        const balance = hexToDecimal(balanceHex) / 1e18;
+        const hasHopped = hexToDecimal(hoppedHex) === 1;
+        const hasClaimed = hexToDecimal(claimedHex) === 1;
 
-        balanceDisplay.textContent = balanceNum.toFixed(2);
+        // Aggiorna UI
+        balanceDisplay.textContent = balance.toFixed(2);
         hoppedStatus.textContent = hasHopped ? '✅' : '❌';
         wisdomStatus.textContent = hasClaimed ? '✅' : '❌';
 
@@ -234,70 +346,97 @@
         }
       } catch (err) {
         console.error("Refresh error:", err);
-        showError("Failed to read data. Check network.");
+        showError(`❌ Errore lettura dati:\n${err.message || 'Verifica che il contratto esista su questa rete.'}`);
       }
     }
 
-    // Polyfill per encodeFunctionData (se non supportato)
-    if (typeof web3Provider.constructor.encodeFunctionData !== 'function') {
-      web3Provider.constructor.encodeFunctionData = function(abi, params) {
-        // Solo per le funzioni che usiamo
-        if (abi.name === 'balanceOf') {
-          const addr = params[0].toLowerCase().replace('0x', '');
-          return '0x70a08231' + addr.padStart(64, '0');
-        }
-        if (abi.name === 'hasHopped') {
-          const addr = params[0].toLowerCase().replace('0x', '');
-          return '0xb05c91c5' + addr.padStart(64, '0');
-        }
-        if (abi.name === 'hasClaimed') {
-          const addr = params[0].toLowerCase().replace('0x', '');
-          return '0xd379336d' + addr.padStart(64, '0');
-        }
-        throw new Error('Unsupported function');
-      };
-    }
-
     async function executeHop() {
+      if (!currentAccount) {
+        showError("❌ Wallet non connesso. Clicca 'Connect Wallet'.");
+        return;
+      }
+
       try {
-        await web3Provider.request({
+        const txHash = await window.ethereum.request({
           method: 'eth_sendTransaction',
           params: [{
             from: currentAccount,
             to: CONTRACT_ADDRESS,
-            data: '0x9c67067f' // keccak256("hop()") truncated to 4 bytes
+            data: FUNCTION_SELECTORS.hop
           }]
         });
-        await new Promise(r => setTimeout(r, 2000)); // Wait for confirmation
+        console.log("Hop tx:", txHash);
+        await waitForTransaction(txHash);
         await refreshData();
       } catch (err) {
-        if (err.code !== 4001) {
-          showError("Hop failed. Check gas balance.");
+        if (err.code === 4001) {
+          showError("❌ Transazione annullata.");
+        } else if (err.message?.includes("insufficient funds")) {
+          showError("❌ Gas insufficiente.\n\nOttieni WND da: https://westend-faucet.polkadot.network");
+        } else if (err.message?.includes("execution reverted")) {
+          showError("❌ Hop fallito.\n\nIl contratto ha rifiutato la transazione.");
+        } else {
+          showError(`❌ Errore Hop:\n${err.message || err}`);
         }
       }
     }
 
     async function claimWisdom() {
+      if (!currentAccount) {
+        showError("❌ Wallet non connesso.");
+        return;
+      }
+
       try {
-        await web3Provider.request({
+        const txHash = await window.ethereum.request({
           method: 'eth_sendTransaction',
           params: [{
             from: currentAccount,
             to: CONTRACT_ADDRESS,
-            data: '0x7e8f90a3' // keccak256("claimWisdom()") truncated
+            data: FUNCTION_SELECTORS.claimWisdom
           }]
         });
-        await new Promise(r => setTimeout(r, 2000));
+        console.log("Claim tx:", txHash);
+        await waitForTransaction(txHash);
         wisdomBox.classList.remove('hidden');
         await refreshData();
       } catch (err) {
-        if (err.code !== 4001) {
-          showError("Claim failed. Need 1 HOP token.");
+        if (err.code === 4001) {
+          showError("❌ Transazione annullata.");
+        } else if (err.message?.includes("Need 1 HOP")) {
+          showError("❌ Necessario almeno 1 token HOP per richiedere la saggezza.");
+        } else if (err.message?.includes("execution reverted")) {
+          showError("❌ Claim fallito.\n\nVerifica il tuo saldo HOP.");
+        } else {
+          showError(`❌ Errore Claim:\n${err.message || err}`);
         }
       }
     }
 
-    // START
+    // Attendi conferma transazione (semplice)
+    function waitForTransaction(txHash) {
+      return new Promise((resolve) => {
+        const check = async () => {
+          try {
+            const receipt = await window.ethereum.request({
+              method: 'eth_getTransactionReceipt',
+              params: [txHash]
+            });
+            if (receipt) {
+              resolve(receipt);
+            } else {
+              setTimeout(check, 2000);
+            }
+          } catch (err) {
+            console.error("Receipt check error:", err);
+            resolve(null);
+          }
+        };
+        check();
+      });
+    }
+
+    // === AVVIA ===
     window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
