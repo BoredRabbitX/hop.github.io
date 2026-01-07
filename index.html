@@ -3,154 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUSD | Alpha 1.0.6</title>
+    <title>PUSD | Alpha 1.0.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #000; --fg: #fff; --accent: #e6007a; --border: #222; }
-        body { background-color: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        :root { --bg: #000; --fg: #fff; --accent: #e6007a; --border: #1a1a1a; --err: #ff3e3e; }
+        body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         .container { width: 100%; max-width: 400px; padding: 20px; }
         h1 { font-family: 'Unbounded', sans-serif; font-size: 3.5rem; margin: 0; letter-spacing: -3px; }
-        .tagline { font-size: 0.8rem; color: #555; margin: 10px 0 40px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .tagline { font-size: 0.8rem; color: #444; margin: 10px 0 40px 0; text-transform: uppercase; letter-spacing: 2px; }
         
-        .btn { font-family: 'Inter', sans-serif; background: var(--fg); color: var(--bg); border: none; padding: 18px; font-size: 0.85rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; text-transform: uppercase; width: 100%; margin-bottom: 12px; display: block; }
-        .btn:hover { background: #ccc; }
+        .btn { font-family: 'Inter', sans-serif; background: var(--fg); color: var(--bg); border: none; padding: 20px; font-size: 0.85rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; text-transform: uppercase; width: 100%; margin-bottom: 12px; display: block; }
+        .btn:hover { background: #ccc; transform: translateY(-1px); }
         .btn-outline { background: transparent; color: var(--fg); border: 1px solid var(--border); }
         .btn:disabled { opacity: 0.1; cursor: not-allowed; }
 
-        #poh-box { border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; display: none; text-align: center; }
-        .poh-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .poh-item { background: #111; border: 1px solid #222; padding: 15px; cursor: pointer; font-size: 1.2rem; }
-        .poh-item:hover { border-color: var(--accent); }
+        /* Nexus PoH Game */
+        #poh-container { border: 1px solid var(--border); padding: 25px; margin-bottom: 20px; display: none; background: #050505; }
+        .poh-header { font-size: 0.6rem; color: var(--accent); font-weight: 700; letter-spacing: 2px; margin-bottom: 15px; text-align: center; }
+        .poh-target-display { background: #111; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-size: 1.2rem; text-align: center; letter-spacing: 10px; border: 1px dashed #333; }
+        .poh-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .poh-cell { background: #000; border: 1px solid #222; padding: 12px; cursor: pointer; font-size: 1rem; text-align: center; border-radius: 4px; transition: 0.1s; }
+        .poh-cell:hover { border-color: var(--accent); background: #0a0a0a; }
 
-        #status-bar { margin-top: 30px; font-size: 0.65rem; color: #444; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
-        .dot { width: 6px; height: 6px; background: #222; border-radius: 50%; }
-        .dot.active { background: #00ff00; }
+        #status-bar { margin-top: 30px; font-size: 0.65rem; color: #333; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        .dot { width: 6px; height: 6px; background: #111; border-radius: 50%; }
+        .dot.active { background: #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.5); }
+        #debug-info { margin-top: 10px; font-size: 0.6rem; color: var(--err); font-family: monospace; display: none; text-align: center; }
         
-        .v { position: fixed; bottom: 30px; left: 30px; font-size: 10px; color: #222; font-weight: 700; }
+        .v { position: fixed; bottom: 30px; left: 30px; font-size: 10px; color: #1a1a1a; font-weight: 700; }
     </style>
 </head>
 <body>
 
-<div class="v">ALPHA 1.0.6</div>
+<div class="v">ALPHA 1.0.7</div>
 
 <div class="container">
     <h1>PUSD</h1>
-    <div class="tagline">Asset-Hub Westend<br>Uplink Terminal</div>
+    <div class="tagline">Westend Asset-Hub<br>Secure Uplink</div>
 
-    <div id="setupSection">
-        <button class="btn" onclick="addNetwork()">Setup Network</button>
-        <button class="btn btn-outline" onclick="connectWallet()">Connect Wallet</button>
+    <div id="interface-init">
+        <button class="btn" onclick="addNetwork()">Config Network</button>
+        <button class="btn btn-outline" onclick="connectWallet()">Connect Terminal</button>
     </div>
 
-    <div id="poh-box">
-        <div id="poh-text" style="font-size: 0.7rem; color: var(--accent); font-weight: 700;">VERIFYING...</div>
+    <div id="poh-container">
+        <div class="poh-header">NEXUS SEQUENCE LOCK</div>
+        <div class="poh-target-display" id="poh-target">----</div>
         <div class="poh-grid" id="poh-grid"></div>
     </div>
 
-    <div id="actionSection" style="display:none;">
-        <button class="btn" id="btnClaim" onclick="handleClaim()">Claim 1.00 PUSD</button>
-        <button class="btn btn-outline" onclick="watchToken()">Add to MetaMask</button>
+    <div id="interface-action" style="display:none;">
+        <button class="btn" id="btnClaim" onclick="executeClaim()">Execute Claim</button>
+        <button class="btn btn-outline" onclick="addPUSD()">Watch Asset</button>
     </div>
 
-    <div id="status-bar"><div id="status-dot" class="dot"></div><span id="status-text">Ready</span></div>
+    <div id="status-bar"><div id="status-dot" class="dot"></div><span id="status-text">Idle</span></div>
+    <div id="debug-info"></div>
 </div>
 
 <script>
-    const ADDR = "0xdD1747d54Fa8d568f9e25B5fBf08561fe6b39f41";
-    const HEX = '0x19082935';
-    const ICONS = ['🌑', '📡', '🛡️', '🔑', '💎', '🚀'];
-    let target = [], user = [];
-    let signer, contract;
+    const CONTRACT_ADDR = "0xdD1747d54Fa8d568f9e25B5fBf08561fe6b39f41";
+    const TARGET_HEX = '0x19082935';
+    const NEXUS_ICONS = ['⚡', '🛡️', '📡', '💎', '🌑', '🚀', '🌀', '🔑', '🌿', '🧊', '🔥', '⚙️'];
+    
+    let sequence = [], userIndex = 0;
+    let signer, contract, provider;
+
+    function updateStatus(msg, active = false) {
+        document.getElementById('status-text').innerText = msg.toUpperCase();
+        document.getElementById('status-dot').className = active ? 'dot active' : 'dot';
+    }
 
     async function addNetwork() {
-        if (!window.ethereum) return alert("Install MetaMask");
         try {
             await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
-                chainId: HEX,
+                chainId: TARGET_HEX,
                 chainName: 'Asset-Hub Westend',
                 nativeCurrency: { name: 'WND', symbol: 'WND', decimals: 18 },
                 rpcUrls: ['https://westend-asset-hub-eth-rpc.polkadot.io'],
                 blockExplorerUrls: ['https://assethub-westend.subscan.io']
             }] });
-            updateStatus("Network Ready", true);
-        } catch (e) { console.error(e); }
+            updateStatus("Network Set", true);
+        } catch (e) { updateStatus("Config Error", false); }
     }
 
     async function connectWallet() {
-        if (!window.ethereum) return alert("Install MetaMask");
+        if (!window.ethereum) return;
         try {
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+            provider = new ethers.providers.Web3Provider(window.ethereum, "any");
             signer = provider.getSigner();
-            
-            // Inizializza contratto qui per evitare errori di caricamento libreria
-            contract = new ethers.Contract(ADDR, [
+            contract = new ethers.Contract(CONTRACT_ADDR, [
                 "function claimToken() external",
                 "function lastClaim(address) view returns (uint256)"
             ], signer);
-            
-            document.getElementById('setupSection').style.display = 'none';
-            startPoH();
-            updateStatus("Wallet Linked", true);
-        } catch (e) { console.error(e); updateStatus("Link Failed", false); }
+
+            document.getElementById('interface-init').style.display = 'none';
+            initNexusPoH();
+            updateStatus("Uplink Active", true);
+        } catch (e) { updateStatus("Connection Refused", false); }
     }
 
-    function startPoH() {
-        document.getElementById('poh-box').style.display = 'block';
-        user = [];
-        target = [...ICONS].sort(() => 0.5 - Math.random()).slice(0, 3);
-        document.getElementById('poh-text').innerText = `SELECT IN ORDER: ${target.join(' ')}`;
+    // --- NEXUS SEQUENCE LOCK (Advanced PoH) ---
+    function initNexusPoH() {
+        document.getElementById('poh-container').style.display = 'block';
+        sequence = [...NEXUS_ICONS].sort(() => 0.5 - Math.random()).slice(0, 4);
+        userIndex = 0;
+        document.getElementById('poh-target').innerText = sequence.join('');
         
         const grid = document.getElementById('poh-grid');
         grid.innerHTML = '';
-        ICONS.forEach(icon => {
-            const el = document.createElement('div');
-            el.className = 'poh-item';
-            el.innerText = icon;
-            el.onclick = () => {
-                if(icon === target[user.length]) {
-                    user.push(icon);
-                    el.style.opacity = '0.1';
-                    el.style.pointerEvents = 'none';
-                    if(user.length === 3) {
-                        document.getElementById('poh-box').style.display = 'none';
-                        document.getElementById('actionSection').style.display = 'block';
+        [...NEXUS_ICONS].sort(() => 0.5 - Math.random()).forEach(icon => {
+            const cell = document.createElement('div');
+            cell.className = 'poh-cell';
+            cell.innerText = icon;
+            cell.onclick = () => {
+                if(icon === sequence[userIndex]) {
+                    userIndex++;
+                    cell.style.opacity = '0.1';
+                    cell.style.pointerEvents = 'none';
+                    if(userIndex === 4) {
+                        document.getElementById('poh-container').style.display = 'none';
+                        document.getElementById('interface-action').style.display = 'block';
+                        updateStatus("Humanity Confirmed", true);
                     }
                 } else {
-                    startPoH();
+                    initNexusPoH(); // Reset sequence on error
                 }
             };
-            grid.appendChild(el);
+            grid.appendChild(cell);
         });
     }
 
-    async function handleClaim() {
+    // --- FINAL EXECUTION LOGIC ---
+    async function executeClaim() {
         const btn = document.getElementById('btnClaim');
+        const debug = document.getElementById('debug-info');
+        btn.disabled = true;
+        debug.style.display = 'none';
+
         try {
-            btn.disabled = true;
-            updateStatus("Broadcasting...", true);
-            const tx = await contract.claimToken();
+            updateStatus("Preparing Gas Protocol...", true);
+            
+            // Tenta di ottenere i dati gas suggeriti dalla rete per EIP-1559
+            const feeData = await provider.getFeeData();
+            
+            updateStatus("Awaiting Signature...", true);
+            
+            // Esecuzione con fallback dinamico
+            const tx = await contract.claimToken({
+                maxFeePerGas: feeData.maxFeePerGas || undefined,
+                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas || undefined,
+                gasLimit: 300000 // Buffer di sicurezza per Westend
+            });
+
+            updateStatus("Broadcasting Transaction...", true);
             await tx.wait();
-            updateStatus("Success", true);
+            
+            updateStatus("Claim Successful", true);
             btn.innerText = "Received";
         } catch (e) {
             console.error(e);
-            updateStatus("RPC Error", false);
             btn.disabled = false;
+            updateStatus("Execution Failed", false);
+            debug.style.display = 'block';
+            debug.innerText = "RPC ERROR: " + (e.reason || "Check WND Balance or Cooldown");
         }
     }
 
-    function updateStatus(text, active) {
-        document.getElementById('status-text').innerText = text.toUpperCase();
-        document.getElementById('status-dot').className = active ? 'dot active' : 'dot';
-    }
-
-    async function watchToken() {
-        await window.ethereum.request({
-            method: 'wallet_watchAsset',
-            params: { type: 'ERC20', options: { address: ADDR, symbol: 'PUSD', decimals: 18 } }
-        });
+    async function addPUSD() {
+        await window.ethereum.request({ method: 'wallet_watchAsset', params: { 
+            type: 'ERC20', 
+            options: { address: CONTRACT_ADDR, symbol: 'PUSD', decimals: 18 } 
+        }});
     }
 </script>
 </body>
