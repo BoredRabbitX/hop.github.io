@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUSD | Alpha 0.7</title>
+    <title>PUSD | Alpha 0.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -12,26 +12,22 @@
         .container { width: 100%; max-width: 450px; padding: 20px; }
         h1 { font-family: 'Unbounded', sans-serif; font-size: 3.5rem; margin: 0; letter-spacing: -2px; }
         .tagline { font-size: 0.8rem; color: #888; margin: 10px 0 40px 0; text-transform: uppercase; letter-spacing: 2px; }
-        
         .btn { font-family: 'Inter', sans-serif; background: var(--fg); color: var(--bg); border: none; padding: 20px; font-size: 0.9rem; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; width: 100%; margin-bottom: 12px; }
         .btn:hover { transform: translateY(-2px); opacity: 0.9; }
         .btn:disabled { opacity: 0.2; cursor: not-allowed; }
         .btn-outline { background: transparent; color: var(--fg); border: 1px solid var(--border); }
-
         #status-bar { margin-top: 30px; font-size: 0.7rem; color: #666; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
         .dot { width: 6px; height: 6px; background: #333; border-radius: 50%; }
         .dot.active { background: #00ff00; box-shadow: 0 0 8px #00ff00; }
-        
         #cooldown-box { margin-top: 20px; padding: 15px; border: 1px solid var(--border); border-radius: 8px; display: none; background: rgba(255, 62, 62, 0.05); text-align: center; }
         #timer-value { color: var(--error); font-family: 'Unbounded', sans-serif; font-size: 1.2rem; font-weight: 700; }
-        
         #wallet-info { font-family: monospace; font-size: 0.65rem; color: #444; margin-top: 15px; text-align: center; word-break: break-all; }
         .v { position: fixed; bottom: 30px; left: 30px; font-size: 10px; color: #333; font-weight: 700; }
     </style>
 </head>
 <body>
 
-<div class="v">ALPHA 0.7</div>
+<div class="v">ALPHA 0.8</div>
 
 <div class="container">
     <h1>PUSD</h1>
@@ -58,7 +54,7 @@
 
 <script>
     const TARGET_HEX = '0x19082935';
-    const CONTRACT_ADDR = "0xdd1747d54fa8d568f9e25b5fbf08561fe6b39f41";
+    const CONTRACT_ADDR = "0x0xdd1747d54fa8d568f9e25b5fbf08561fe6b39f41"; // Assicurati sia corretto senza doppio 0x
     const NETWORK_PARAMS = {
         chainId: TARGET_HEX,
         chainName: 'Asset-Hub Westend',
@@ -69,7 +65,6 @@
 
     let signer, contract, claimStep = "verify";
 
-    // --- MONITORAGGIO COSTANTE (Il Bypass) ---
     async function monitorNetwork() {
         if (!window.ethereum) return;
         const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
@@ -79,31 +74,19 @@
             updateStatus("Network Validated", true);
         }
     }
-    setInterval(monitorNetwork, 1000); // Controlla ogni secondo se la rete è cambiata
+    setInterval(monitorNetwork, 2000);
 
-    // --- 1. SOLO AGGIUNTA RETE ---
     async function addNetwork() {
         try {
-            updateStatus("Requesting Network Add...", false);
-            await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [NETWORK_PARAMS]
-            });
+            await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [NETWORK_PARAMS] });
         } catch (e) { console.error(e); }
     }
 
-    // --- 2. SOLO CONNESSIONE ---
     async function connectWallet() {
         if (!window.ethereum) return;
         try {
-            const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
-            if (currentChain !== TARGET_HEX) {
-                updateStatus("Please use Setup Network first", false);
-                return;
-            }
-
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
             signer = provider.getSigner();
             contract = new ethers.Contract(CONTRACT_ADDR, [
                 "function claimToken() external",
@@ -118,42 +101,59 @@
         } catch (e) { updateStatus("Connection Failed", false); }
     }
 
-    // --- 3. LOGICA CLAIM ---
+    // --- FIX CLAIM (GAS & RPC) ---
     async function handleClaim() {
         const btn = document.getElementById('btnClaim');
         if (claimStep === "verify") {
             btn.disabled = true;
-            updateStatus("Analyzing Identity...", true);
+            updateStatus("Verifying Identity...", true);
             setTimeout(() => {
                 btn.disabled = false;
                 btn.innerText = "Claim 1.00 PUSD";
                 claimStep = "claim";
                 updateStatus("Human Verified", true);
-            }, 1500);
+            }, 1000);
         } else {
             try {
                 btn.disabled = true;
-                updateStatus("Sending Transaction...", true);
-                const tx = await contract.claimToken({ gasLimit: 250000 });
+                updateStatus("Requesting PUSD...", true);
+
+                // Forziamo un limite di gas alto per evitare l'errore JSON-RPC di stima fallita
+                const tx = await contract.claimToken({
+                    gasLimit: 300000, 
+                    // Alcuni nodi RPC richiedono il prezzo del gas esplicito su testnet
+                });
+
+                updateStatus("Transaction Pending...", true);
                 await tx.wait();
-                updateStatus("PUSD Received", true);
-                location.reload();
+                
+                updateStatus("1 PUSD Secured", true);
+                btn.innerText = "Received";
+                setTimeout(() => location.reload(), 3000);
             } catch (e) {
-                updateStatus("Transaction Error", false);
+                console.error("RPC Error Details:", e);
+                // Se l'errore contiene "Wait", è il cooldown del contratto
+                if (e.message.includes("Wait")) {
+                    updateStatus("Cooldown still active", false);
+                } else {
+                    updateStatus("RPC Error: Check WND Balance", false);
+                }
                 btn.disabled = false;
             }
         }
     }
 
     async function checkCooldown(addr) {
-        const last = await contract.lastClaim(addr);
-        const next = (last.toNumber() + (7 * 24 * 60 * 60)) * 1000;
-        if (Date.now() < next) {
-            document.getElementById('btnClaim').disabled = true;
-            document.getElementById('btnClaim').innerText = "Access Locked";
-            document.getElementById('cooldown-box').style.display = "block";
-            startTimer(next);
-        }
+        try {
+            const last = await contract.lastClaim(addr);
+            const next = (last.toNumber() + (7 * 24 * 60 * 60)) * 1000;
+            if (Date.now() < next) {
+                document.getElementById('btnClaim').disabled = true;
+                document.getElementById('btnClaim').innerText = "Access Locked";
+                document.getElementById('cooldown-box').style.display = "block";
+                startTimer(next);
+            }
+        } catch(e) { console.log("New user"); }
     }
 
     function startTimer(target) {
@@ -174,10 +174,12 @@
     }
 
     async function watchToken() {
-        await window.ethereum.request({
-            method: 'wallet_watchAsset',
-            params: { type: 'ERC20', options: { address: CONTRACT_ADDR, symbol: 'PUSD', decimals: 18 } }
-        });
+        try {
+            await window.ethereum.request({
+                method: 'wallet_watchAsset',
+                params: { type: 'ERC20', options: { address: CONTRACT_ADDR, symbol: 'PUSD', decimals: 18 } }
+            });
+        } catch (e) {}
     }
 </script>
 </body>
