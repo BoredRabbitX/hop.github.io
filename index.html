@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUSD Alpha 1.0.14</title>
+    <title>PUSD Alpha 1.0.15</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -11,17 +11,26 @@
         body { background: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
         .container { width: 100%; max-width: 400px; padding: 20px; }
         h1 { font-family: 'Unbounded', sans-serif; font-size: 3.5rem; margin: 0; letter-spacing: -3px; }
-        .tagline { font-size: 0.8rem; color: #444; margin: 10px 0 40px 0; text-transform: uppercase; letter-spacing: 2px; }
-        .btn { font-family: 'Inter', sans-serif; background: var(--fg); color: var(--bg); border: none; height: 60px; font-size: 0.85rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; text-transform: uppercase; width: 100%; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .tagline { font-size: 0.8rem; color: #444; margin: 10px 0 30px 0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Unified Button Sizes */
+        .btn { 
+            font-family: 'Inter', sans-serif; background: var(--fg); color: var(--bg); border: none; 
+            height: 60px; font-size: 0.85rem; font-weight: 700; border-radius: 4px; cursor: pointer; 
+            transition: 0.2s; text-transform: uppercase; width: 100%; margin-bottom: 12px; 
+            display: flex; align-items: center; justify-content: center; text-decoration: none; box-sizing: border-box;
+        }
         .btn:hover { background: #ccc; }
         .btn-outline { background: transparent; color: var(--fg); border: 1px solid var(--border); }
-        .btn-faucet { border-color: var(--accent); color: var(--accent); font-size: 0.7rem; margin-top: 10px; height: 45px; }
+        .btn-faucet { border-color: var(--accent); color: var(--accent); font-size: 0.7rem; height: 50px; }
         .btn:disabled { opacity: 0.1; cursor: not-allowed; }
+
         #poh-container { border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; display: none; background: #050505; }
         .poh-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px; }
         .poh-cell { background: #000; border: 1px solid #222; padding: 12px; cursor: pointer; font-size: 1.2rem; text-align: center; border-radius: 4px; }
         .poh-target { background: #111; padding: 10px; border-radius: 4px; margin-bottom: 10px; font-size: 1.2rem; text-align: center; letter-spacing: 5px; font-family: 'Unbounded'; color: var(--accent); border: 1px dashed #333; }
-        #timer-box { color: #ff3e3e; font-family: 'Unbounded'; font-size: 1rem; margin: 20px 0; text-align: center; display: none; height: 60px; align-items: center; justify-content: center; border: 1px solid #200; }
+        
+        #timer-box { color: #ff3e3e; font-family: 'Unbounded'; font-size: 0.9rem; margin: 20px 0; text-align: center; display: none; height: 60px; align-items: center; justify-content: center; border: 1px solid #200; border-radius: 4px; }
         #status-bar { margin-top: 30px; font-size: 0.65rem; color: #333; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
         .dot { width: 6px; height: 6px; background: #111; border-radius: 50%; }
         .dot.active { background: #00ff00; }
@@ -29,156 +38,158 @@
 </head>
 <body>
 
-<div style="position: fixed; bottom: 30px; left: 30px; font-size: 10px; color: #1a1a1a; font-weight: 700;">ALPHA 1.0.14</div>
+<div style="position: fixed; bottom: 30px; left: 30px; font-size: 10px; color: #1a1a1a; font-weight: 700;">ALPHA 1.0.15</div>
 
 <div class="container">
     <h1>PUSD</h1>
-    <div class="tagline">Westend Asset-Hub<br>Solidity EVM Terminal</div>
+    <div class="tagline">Westend Asset-Hub<br>PolkaVM EVM Uplink</div>
 
-    <div id="ui-init">
+    <div id="flow-1">
         <button class="btn" onclick="setupNet()">Configura Network</button>
-        <button class="btn btn-outline" onclick="connect()">Collega Wallet</button>
+        <button class="btn btn-outline" onclick="connectWallet()">Collega Wallet</button>
     </div>
 
-    <button class="btn" id="btn-poh-trigger" onclick="openPoh()" style="display:none;">Proof that you are human</button>
+    <button class="btn" id="btn-poh" onclick="startPoh()" style="display:none;">Proof that you are human</button>
     
     <div id="poh-container">
         <div class="poh-target" id="poh-display">----</div>
         <div class="poh-grid" id="poh-grid"></div>
     </div>
 
-    <div id="ui-action" style="display:none;">
-        <button class="btn" id="btn-claim" onclick="claim()">Claim 1 PUSD</button>
-        <button class="btn btn-outline" onclick="addToken()">Add to Wallet</button>
+    <div id="flow-claim" style="display:none;">
+        <button class="btn" id="btn-claim-exec" onclick="executeClaim()">Claim 1 PUSD</button>
+        <button class="btn btn-outline" onclick="watchToken()">Add Asset to Wallet</button>
     </div>
 
-    <div id="timer-box"></div>
+    <div id="timer-box">COOLDOWN ACTIVE</div>
 
-    <a href="https://faucet.polkadot.io/westend" target="_blank" class="btn btn-outline btn-faucet">Richiedi WND (Gas)</a>
+    <a href="https://faucet.polkadot.io/westend" target="_blank" class="btn btn-outline btn-faucet">Get WND Tokens (Faucet)</a>
 
-    <div id="status-bar"><div id="status-dot" class="dot"></div><span id="status-text">Disconnected</span></div>
+    <div id="status-bar"><div id="status-dot" class="dot"></div><span id="status-text">Ready</span></div>
 </div>
 
 <script>
-    const CONTRACT_ADDR = "0xdd1747d54fa8d568f9e25b5fbf08561fe6b39f41";
-    const TARGET_HEX = '0x19082935';
+    const ADDR = "0xdd1747d54fa8d568f9e25b5fbf08561fe6b39f41";
+    const CHAIN_ID = '0x19082935';
     const ICONS = ['⚡', '🛡️', '📡', '💎', '🌑', '🚀', '🌀', '🔑', '🌿', '🧊', '🔥', '⚙️'];
     
-    let seq = [], idx = 0, signer, contract, provider;
+    let sequence = [], userStep = 0, signer, contract, provider;
 
-    function stat(t, a=false) {
-        document.getElementById('status-text').innerText = t.toUpperCase();
-        document.getElementById('status-dot').className = a ? 'dot active' : 'dot';
+    function setStatus(msg, active = false) {
+        document.getElementById('status-text').innerText = msg.toUpperCase();
+        document.getElementById('status-dot').className = active ? 'dot active' : 'dot';
     }
 
     async function setupNet() {
         try {
             await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{
-                chainId: TARGET_HEX,
+                chainId: CHAIN_ID,
                 chainName: 'Asset-Hub Westend',
                 nativeCurrency: { name: 'WND', symbol: 'WND', decimals: 18 },
                 rpcUrls: ['https://westend-asset-hub-eth-rpc.polkadot.io'],
                 blockExplorerUrls: ['https://assethub-westend.subscan.io']
             }] });
-            stat("Network OK", true);
-        } catch (e) { stat("Net Error"); }
+            setStatus("Network Configured", true);
+        } catch (e) { setStatus("Network Error"); }
     }
 
-    async function connect() {
-        if(!window.ethereum) return alert("MetaMask?");
+    async function connectWallet() {
+        if (!window.ethereum) return;
         try {
-            const accs = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             provider = new ethers.providers.Web3Provider(window.ethereum, "any");
             signer = provider.getSigner();
             
-            // Inizializzazione contratto pulita
-            contract = new ethers.Contract(CONTRACT_ADDR, [
+            // Inizializzazione contratto (LowerCase for Checksum Bypass)
+            contract = new ethers.Contract(ADDR.toLowerCase(), [
                 "function claimToken() external",
                 "function lastClaim(address) view returns (uint256)"
             ], signer);
 
-            document.getElementById('ui-init').style.display = 'none';
-            check(accs[0]);
-        } catch (e) { stat("Auth Error"); }
+            document.getElementById('flow-1').style.display = 'none';
+            checkAccess(accounts[0]);
+        } catch (e) { setStatus("Connection Failed"); }
     }
 
-    async function check(addr) {
+    async function checkAccess(userAddr) {
         try {
-            const last = await contract.lastClaim(addr);
+            const lastTs = await contract.lastClaim(userAddr);
             const now = Math.floor(Date.now() / 1000);
-            const wait = 604800; // 7 days in seconds
-            const diff = (parseInt(last) + wait) - now;
+            const cooldown = 604800; // 7 days
+            const timeLeft = (parseInt(lastTs) + cooldown) - now;
 
-            if (diff > 0 && parseInt(last) !== 0) {
-                const box = document.getElementById('timer-box');
-                box.style.display = 'flex';
-                stat("Cooldown", false);
-                const itv = setInterval(() => {
-                    const d = Math.floor(diff / 86400);
-                    box.innerText = "NEXT IN " + d + " DAYS";
-                }, 1000);
+            if (timeLeft > 0 && parseInt(lastTs) !== 0) {
+                const tBox = document.getElementById('timer-box');
+                tBox.style.display = 'flex';
+                tBox.innerText = `NEXT CLAIM IN ${Math.ceil(timeLeft / 86400)} DAYS`;
+                setStatus("Cooldown Active");
             } else {
-                document.getElementById('btn-poh-trigger').style.display = 'flex';
-                stat("Human Check", true);
+                document.getElementById('btn-poh').style.display = 'flex';
+                setStatus("Verify Humanity", true);
             }
-        } catch (e) { 
-            document.getElementById('btn-poh-trigger').style.display = 'flex';
+        } catch (e) {
+            document.getElementById('btn-poh').style.display = 'flex';
         }
     }
 
-    function openPoh() {
-        document.getElementById('btn-poh-trigger').style.display = 'none';
+    function startPoh() {
+        document.getElementById('btn-poh').style.display = 'none';
         document.getElementById('poh-container').style.display = 'block';
-        seq = [...ICONS].sort(() => 0.5 - Math.random()).slice(0, 5);
-        idx = 0;
-        document.getElementById('poh-display').innerText = seq.join('');
-        const g = document.getElementById('poh-grid');
-        g.innerHTML = '';
-        [...ICONS].sort(() => 0.5 - Math.random()).forEach(i => {
-            const c = document.createElement('div');
-            c.className = 'poh-cell';
-            c.innerText = i;
-            c.onclick = () => {
-                if(i === seq[idx]) {
-                    idx++;
-                    c.style.opacity = '0.1';
-                    if(idx === 5) {
+        sequence = [...ICONS].sort(() => 0.5 - Math.random()).slice(0, 5);
+        userStep = 0;
+        document.getElementById('poh-display').innerText = sequence.join('');
+        const grid = document.getElementById('poh-grid');
+        grid.innerHTML = '';
+        [...ICONS].sort(() => 0.5 - Math.random()).forEach(icon => {
+            const cell = document.createElement('div');
+            cell.className = 'poh-cell';
+            cell.innerText = icon;
+            cell.onclick = () => {
+                if(icon === sequence[userStep]) {
+                    userStep++;
+                    cell.style.opacity = '0.1';
+                    if(userStep === 5) {
                         document.getElementById('poh-container').style.display = 'none';
-                        document.getElementById('ui-action').style.display = 'block';
-                        stat("Verified", true);
+                        document.getElementById('flow-claim').style.display = 'block';
+                        setStatus("Verified", true);
                     }
-                } else { openPoh(); }
+                } else { startPoh(); }
             };
-            g.appendChild(c);
+            grid.appendChild(cell);
         });
     }
 
-    async function claim() {
-        const b = document.getElementById('btn-claim');
+    async function executeClaim() {
+        const btn = document.getElementById('btn-claim-exec');
         try {
-            b.disabled = true;
-            stat("Signing...", true);
-            
-            // Gas automatico per Solidity EVM su pallet-revive
+            btn.disabled = true;
+            setStatus("Uplinking...", true);
+
+            // Otteniamo i dati Fee correnti per EIP-1559 su PolkaVM
+            const fees = await provider.getFeeData();
+
+            // FIX GAS: Forziamo i limiti per Asset Hub (Multi-dim resources)
             const tx = await contract.claimToken({
-                gasLimit: 1000000 // Copre ampiamente il costo di scrittura su Westend
+                maxFeePerGas: fees.maxFeePerGas || ethers.utils.parseUnits("20", "gwei"),
+                maxPriorityFeePerGas: fees.maxPriorityFeePerGas || ethers.utils.parseUnits("1.5", "gwei"),
+                gasLimit: 1500000 // Copre ref_time, proof_size e storage_deposit di pallet_revive
             });
-            
-            stat("Pending...", true);
+
+            setStatus("Broadcasting...", true);
             await tx.wait();
-            stat("Success", true);
-            b.innerText = "DONE";
+            setStatus("Success!", true);
+            btn.innerText = "Claimed";
             setTimeout(() => location.reload(), 3000);
         } catch (e) {
-            console.log(e);
-            stat("Error: check WND/Wait", false);
-            b.disabled = false;
+            btn.disabled = false;
+            setStatus("Revert: Check WND/Cooldown", false);
+            console.error("RPC Error:", e);
         }
     }
 
-    async function addToken() {
+    async function watchToken() {
         await window.ethereum.request({ method: 'wallet_watchAsset', params: { 
-            type: 'ERC20', options: { address: CONTRACT_ADDR, symbol: 'PUSD', decimals: 18 } 
+            type: 'ERC20', options: { address: ADDR, symbol: 'PUSD', decimals: 18 } 
         }});
     }
 </script>
