@@ -7,116 +7,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #000000;
-            --accent: #ffffff;
-            --text-secondary: #888888;
-        }
+        :root { --primary: #000; --accent: #fff; --grey: #888; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Space Grotesk', sans-serif; color: var(--accent); }
+        
+        #noiseCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.12; }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Space Grotesk', sans-serif;
-            color: var(--accent);
-        }
+        .container { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
+        .card { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); border: 1px solid #222; padding: 3rem; border-radius: 4px; max-width: 420px; width: 90%; text-align: center; }
+        
+        h1 { font-size: 3.5rem; font-weight: 700; letter-spacing: -3px; margin: 0; line-height: 1; }
+        .sub-header { color: var(--grey); margin-bottom: 2rem; font-size: 0.8rem; letter-spacing: 3px; font-weight: 300; text-transform: uppercase; }
 
-        /* Background Noise Effect */
-        #noiseCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.15; /* Effetto soffuso */
-        }
+        .btn { background: var(--accent); color: var(--primary); border: none; padding: 16px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; width: 100%; margin-top: 12px; border-radius: 2px; }
+        .btn:hover { background: #bbb; transform: scale(1.02); }
+        .btn:disabled { background: #1a1a1a; color: #444; cursor: not-allowed; }
 
-        .container {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
-
-        .card {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid #333;
-            padding: 3rem;
-            border-radius: 2px; /* Stile più squadrato/tech */
-            max-width: 450px;
-            width: 90%;
-            box-shadow: 0 0 50px rgba(0,0,0,1);
-        }
-
-        h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            letter-spacing: -2px;
-            margin: 0;
-            text-transform: uppercase;
-        }
-
-        .sub-header {
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-        }
-
-        .btn {
-            background: var(--accent);
-            color: var(--primary);
-            border: none;
-            padding: 15px 30px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        .btn:hover {
-            background: #ccc;
-            letter-spacing: 4px;
-        }
-
-        .btn:disabled {
-            background: #222;
-            color: #444;
-            cursor: not-allowed;
-            letter-spacing: 2px;
-        }
-
-        .info-box {
-            margin-top: 2rem;
-            border-top: 1px solid #222;
-            padding-top: 1rem;
-        }
-
-        #status {
-            font-size: 0.75rem;
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-        }
-
-        #walletAddress {
-            font-size: 0.6rem;
-            color: #444;
-            margin-top: 5px;
-        }
+        #status { font-size: 0.7rem; margin-top: 1.5rem; color: var(--grey); text-transform: uppercase; min-height: 1em; }
+        #walletAddress { font-size: 0.6rem; color: #555; margin-top: 10px; word-break: break-all; font-family: monospace; }
+        
+        .timer { font-size: 0.8rem; color: #ff3e3e; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -126,51 +35,45 @@
 <div class="container">
     <div class="card">
         <h1>PUSD</h1>
-        <div class="sub-header">WESTEND ASSET HUB • $1.00 PEGGED</div>
+        <div class="sub-header">Asset-Hub Westend</div>
         
-        <button class="btn" id="connectBtn" onclick="connect()">Connect Provider</button>
+        <button class="btn" id="connectBtn" onclick="initConnection()">Connect & Setup Network</button>
         <p id="walletAddress"></p>
 
-        <div class="info-box">
-            <button class="btn" id="pohBtn" onclick="verifyHuman()" disabled>Proof that I am human</button>
+        <div id="actionPanel" style="display:none;">
+            <button class="btn" id="pohBtn" onclick="verifyHuman()">Proof that I am human</button>
             <button class="btn" id="claimBtn" onclick="claim()" disabled>Claim 1.00 PUSD</button>
+            <p id="claimTimer" class="timer"></p>
         </div>
 
-        <p id="status">Awaiting Wallet Connection...</p>
+        <p id="status">INITIATE CONNECTION</p>
     </div>
 </div>
 
 <script>
-    // --- BACKGROUND NOISE LOGIC ---
+    // --- TV NOISE EFFECT ---
     const canvas = document.getElementById('noiseCanvas');
     const ctx = canvas.getContext('2d');
-
-    function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.onresize = resize;
-    resize();
-
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = resize; resize();
     function noise() {
-        const w = canvas.width;
-        const h = canvas.height;
-        const idata = ctx.createImageData(w, h);
+        const idata = ctx.createImageData(canvas.width, canvas.height);
         const buffer32 = new Uint32Array(idata.data.buffer);
-        const len = buffer32.length;
-        
-        for (let i = 0; i < len; i++) {
-            // Generazione logaritmica/casuale per effetto noise TV
-            if (Math.random() < 0.5) buffer32[i] = 0xff000000;
-            else buffer32[i] = 0xffffffff;
-        }
-        
+        for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
         ctx.putImageData(idata, 0, 0);
         requestAnimationFrame(noise);
     }
     noise();
 
-    // --- BLOCKCHAIN LOGIC ---
+    // --- NETWORK DATA ---
+    const WESTEND_DATA = {
+        chainId: '0x19082935', // 420420421 in hex
+        chainName: 'Asset-Hub Westend Testnet',
+        nativeCurrency: { name: 'WND', symbol: 'WND', decimals: 18 },
+        rpcUrls: ['https://westend-asset-hub-eth-rpc.polkadot.io'],
+        blockExplorerUrls: ['https://assethub-westend.subscan.io']
+    };
+
     const CONTRACT_ADDRESS = "0xdd1747d54fa8d568f9e25b5fbf08561fe6b39f41";
     const ABI = [
         "function claimToken() external",
@@ -179,8 +82,26 @@
 
     let signer, contract;
 
-    async function connect() {
-        if (window.ethereum) {
+    async function initConnection() {
+        if (!window.ethereum) return alert("MetaMask not found");
+        
+        try {
+            // 1. Check/Switch Network
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: WESTEND_DATA.chainId }],
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [WESTEND_DATA],
+                    });
+                }
+            }
+
+            // 2. Connect Wallet
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = provider.getSigner();
@@ -189,29 +110,48 @@
 
             document.getElementById('walletAddress').innerText = addr;
             document.getElementById('connectBtn').style.display = 'none';
-            document.getElementById('pohBtn').disabled = false;
-            document.getElementById('status').innerText = "Identity verification required";
+            document.getElementById('actionPanel').style.display = 'block';
+            document.getElementById('status').innerText = "NETWORK SYNCED • READY";
+            
+            checkCooldown(addr);
+        } catch (err) {
+            console.error(err);
+            document.getElementById('status').innerText = "CONNECTION FAILED";
+        }
+    }
+
+    async function checkCooldown(addr) {
+        const lastClaim = await contract.lastClaim(addr);
+        const nextClaim = (lastClaim.toNumber() + (7 * 24 * 60 * 60)) * 1000;
+        if (Date.now() < nextClaim) {
+            document.getElementById('pohBtn').disabled = true;
+            document.getElementById('status').innerText = "COOLDOWN ACTIVE";
+            const date = new Date(nextClaim).toLocaleDateString();
+            document.getElementById('claimTimer').innerText = `NEXT CLAIM: ${date}`;
+            document.getElementById('claimTimer').style.display = 'block';
         }
     }
 
     function verifyHuman() {
-        document.getElementById('status').innerText = "Processing biological patterns...";
-        document.getElementById('pohBtn').innerText = "Verified";
+        document.getElementById('pohBtn').innerText = "ANALYZING...";
+        document.getElementById('status').innerText = "BIOMETRIC SCAN IN PROGRESS";
         setTimeout(() => {
+            document.getElementById('pohBtn').innerText = "VERIFIED";
             document.getElementById('pohBtn').disabled = true;
             document.getElementById('claimBtn').disabled = false;
-            document.getElementById('status').innerText = "Human confirmed. Ready to claim.";
+            document.getElementById('status').innerText = "HUMAN CONFIRMED";
         }, 2000);
     }
 
     async function claim() {
         try {
-            document.getElementById('status').innerText = "Transmitting to Westend...";
+            document.getElementById('status').innerText = "TRANSMITTING...";
             const tx = await contract.claimToken();
             await tx.wait();
-            document.getElementById('status').innerText = "1 PUSD secured in wallet.";
+            document.getElementById('status').innerText = "1.00 PUSD SECURED";
+            document.getElementById('claimBtn').disabled = true;
         } catch (err) {
-            document.getElementById('status').innerText = "Error: Cooldown active or network failure.";
+            document.getElementById('status').innerText = "TRANSACTION REJECTED";
         }
     }
 </script>
