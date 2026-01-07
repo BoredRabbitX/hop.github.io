@@ -3,84 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUSD | Digital Dollar Faucet</title>
+    <title>PUSD | Experimental Faucet</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #000; --accent: #fff; --grey: #888; }
+        :root { --primary: #000; --accent: #fff; --grey: #666; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Space Grotesk', sans-serif; color: var(--accent); }
-        #noiseCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.12; }
+        
+        #artCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.4; }
+
         .container { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
-        .card { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); border: 1px solid #222; padding: 3rem; border-radius: 4px; max-width: 420px; width: 90%; text-align: center; }
-        h1 { font-size: 3.5rem; font-weight: 700; letter-spacing: -3px; margin: 0; line-height: 1; }
-        .sub-header { color: var(--grey); margin-bottom: 2rem; font-size: 0.8rem; letter-spacing: 3px; font-weight: 300; text-transform: uppercase; }
-        .btn { background: var(--accent); color: var(--primary); border: none; padding: 16px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; width: 100%; margin-top: 12px; border-radius: 2px; }
-        .btn:hover { background: #bbb; }
-        .btn:disabled { background: #1a1a1a; color: #444; cursor: not-allowed; }
-        #status { font-size: 0.7rem; margin-top: 1.5rem; color: var(--grey); text-transform: uppercase; }
-        #walletAddress { font-size: 0.6rem; color: #555; margin-top: 10px; word-break: break-all; font-family: monospace; }
-        .timer { font-size: 0.8rem; color: #ff3e3e; margin-top: 10px; display: none; }
+        .card { background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(20px); border: 1px solid #333; padding: 3rem; border-radius: 2px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 0 100px rgba(0,0,0,0.5); }
+        
+        h1 { font-size: 4rem; font-weight: 700; letter-spacing: -4px; margin: 0; line-height: 0.9; }
+        .sub-header { color: var(--grey); margin-bottom: 2rem; font-size: 0.75rem; letter-spacing: 4px; font-weight: 300; text-transform: uppercase; }
+
+        .btn { background: var(--accent); color: var(--primary); border: none; padding: 16px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; width: 100%; margin-top: 10px; }
+        .btn:hover { background: #bbb; filter: invert(1); }
+        .btn:disabled { background: #111; color: #333; cursor: not-allowed; border: 1px solid #222; }
+        
+        .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); margin-top: 10px; }
+        .btn-outline:hover { background: var(--accent); color: var(--primary); }
+
+        #status { font-size: 0.7rem; margin-top: 1.5rem; color: var(--grey); text-transform: uppercase; letter-spacing: 1px; }
+        #walletAddress { font-size: 0.6rem; color: #444; margin-top: 10px; font-family: monospace; }
+        
+        .disclaimer { position: absolute; bottom: 20px; font-size: 0.65rem; color: #444; letter-spacing: 1px; text-transform: uppercase; width: 100%; text-align: center; }
+        .timer { font-size: 0.8rem; color: #ff3e3e; margin-top: 10px; display: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<canvas id="noiseCanvas"></canvas>
+<canvas id="artCanvas"></canvas>
 
 <div class="container">
     <div class="card">
         <h1>PUSD</h1>
-        <div class="sub-header">Asset-Hub Westend</div>
+        <div class="sub-header">Westend Testnet Exp.</div>
         
-        <button class="btn" id="connectBtn" onclick="initConnection()">Connect Wallet</button>
+        <button class="btn" id="connectBtn" onclick="initConnection()">Initialize Terminal</button>
         <p id="walletAddress"></p>
 
         <div id="actionPanel" style="display:none;">
-            <button class="btn" id="pohBtn" onclick="verifyHuman()">Proof that I am human</button>
+            <button class="btn" id="pohBtn" onclick="verifyHuman()">Proof of Humanity</button>
             <button class="btn" id="claimBtn" onclick="claim()" disabled>Claim 1.00 PUSD</button>
+            <button class="btn btn-outline" id="addTokenBtn" onclick="watchToken()">Add PUSD to Wallet</button>
             <p id="claimTimer" class="timer"></p>
         </div>
 
-        <p id="status">INITIATE CONNECTION</p>
+        <p id="status">Awaiting uplink...</p>
     </div>
 </div>
 
-<script>
-    // --- TV NOISE EFFECT ---
-    const canvas = document.getElementById('noiseCanvas');
-    const ctx = canvas.getContext('2d');
-    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-    window.onresize = resize; resize();
-    function noise() {
-        const idata = ctx.createImageData(canvas.width, canvas.height);
-        const buffer32 = new Uint32Array(idata.data.buffer);
-        for (let i = 0; i < buffer32.length; i++) buffer32[i] = Math.random() < 0.5 ? 0xff000000 : 0xffffffff;
-        ctx.putImageData(idata, 0, 0);
-        requestAnimationFrame(noise);
-    }
-    noise();
+<div class="disclaimer">
+    Experimental Environment: Asset-Hub Westend Testnet - No real value.
+</div>
 
-    // --- CONFIGURATION ---
-    const TARGET_CHAIN_ID = '420420421';
-    const TARGET_CHAIN_HEX = '0x19082935';
+<script>
+    // --- DYNAMIC LOGARITHMIC CANVAS ---
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    function drawLogarithmicArt() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const count = 40 + Math.floor(Math.random() * 60);
+
+        for (let i = 1; i < count; i++) {
+            // Distribuzione logaritmica per il raggio
+            const radius = Math.log(i) * (canvas.width / 10) * Math.random();
+            const posX = Math.random() * canvas.width;
+            const posY = Math.random() * canvas.height;
+            const size = Math.random() * (20 / Math.log(i + 1));
+
+            ctx.beginPath();
+            ctx.arc(posX, posY, size, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.closePath();
+        }
+    }
+    drawLogarithmicArt();
+
+    // --- CONFIG & NETWORK ---
+    const TARGET_ID = '420420421';
+    const TARGET_HEX = '0x19082935';
+    const CONTRACT_ADDR = "0xdd1747d54fa8d568f9e25b5fbf08561fe6b39f41";
+    
     const WESTEND_DATA = {
-        chainId: TARGET_CHAIN_HEX,
+        chainId: TARGET_HEX,
         chainName: 'Asset-Hub Westend Testnet',
         nativeCurrency: { name: 'WND', symbol: 'WND', decimals: 18 },
         rpcUrls: ['https://westend-asset-hub-eth-rpc.polkadot.io'],
         blockExplorerUrls: ['https://assethub-westend.subscan.io']
     };
 
-    const CONTRACT_ADDRESS = "0xdd1747d54fa8d568f9e25b5fbf08561fe6b39f41";
-    const ABI = [
-        "function claimToken() external",
-        "function lastClaim(address) view returns (uint256)"
-    ];
-
     let signer, contract;
 
     async function initConnection() {
-        if (!window.ethereum) return alert("MetaMask not found");
+        if (!window.ethereum) return alert("Install MetaMask");
         
         try {
             const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const { chainId } = await provider.getNetwork
+            const { chainId } = await provider.getNetwork();
+
+            if (chainId.toString() !== TARGET_ID) {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: TARGET_HEX }],
+                    });
+                } catch (e) {
+                    if (e.code === 4902) await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [WESTEND_DATA] });
+                }
+                location.reload();
+                return;
+            }
+
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            const addr = await signer.getAddress();
+            contract = new ethers.Contract(CONTRACT_ADDR, ["function claimToken() external", "function lastClaim(address) view returns (uint256)"], signer);
+
+            document.getElementById('walletAddress').innerText = addr;
+            document.getElementById('connectBtn').style.display = 'none';
+            document.getElementById('actionPanel').style.display = 'block';
+            document.getElementById('status').innerText = "Link established";
+            
+            checkCooldown(addr);
+        } catch (err) {
+            document.getElementById('status').innerText = "Uplink failed";
+        }
+    }
+
+    async function checkCooldown(addr) {
+        try {
+            const last = await contract.lastClaim(addr);
+            const next = (last.toNumber() + (7 * 24 * 60 * 60)) * 1000;
+            if (Date.now() < next) {
+                document.getElementById('pohBtn').disabled = true;
+                document.getElementById('status').innerText = "Cooldown: Biological rest needed";
+                document.getElementById('claimTimer').innerText = `Sync ready: ${new Date(next).toLocaleDateString()}`;
+                document.getElementById('claimTimer').style.display = 'block';
+            }
+        } catch (e) {}
+    }
+
+    function verifyHuman() {
+        document.getElementById('pohBtn').innerText = "Scanning DNA...";
+        setTimeout(() => {
+            document.getElementById('pohBtn').disabled = true;
+            document.getElementById('claimBtn').disabled = false;
+            document.getElementById('status').innerText = "Carbon-based lifeform detected";
+        }, 1500);
+    }
+
+    async function claim() {
+        try {
+            document.getElementById('status').innerText = "Injecting PUSD...";
+            const tx = await contract.claimToken();
+            await tx.wait();
+            document.getElementById('status').innerText = "Transfer complete";
+            document.getElementById('claimBtn').disabled = true;
+        } catch (err) {
+            document.getElementById('status').innerText = "Protocol error";
+        }
+    }
+
+    async function watchToken() {
+        try {
+            await window.ethereum.request({
+                method: 'wallet_watchAsset',
+                params: {
+                    type: 'ERC20',
+                    options: {
+                        address: CONTRACT_ADDR,
+                        symbol: 'PUSD',
+                        decimals: 18,
+                        image: 'https://polkadot.network/wp-content/uploads/2021/05/Polkadot_Logo_Horizontal_White.png',
+                    },
+                },
+            });
+        } catch (error) { console.log(error); }
+    }
+</script>
+</body>
+</html>
