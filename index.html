@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PUSD | Alpha 0.4</title>
+    <title>PUSD | Alpha 0.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #000; --fg: #fff; --accent: #e6007a; --border: #222; }
+        :root { --bg: #000; --fg: #fff; --accent: #e6007a; --border: #222; --error: #ff3e3e; }
         body { background-color: var(--bg); color: var(--fg); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; -webkit-font-smoothing: antialiased; }
         .container { width: 100%; max-width: 450px; padding: 20px; }
         h1 { font-family: 'Unbounded', sans-serif; font-size: 3.5rem; margin: 0; letter-spacing: -2px; }
@@ -16,18 +16,23 @@
         button { font-family: 'Inter', sans-serif; background: var(--fg); color: var(--bg); border: none; padding: 18px; font-size: 0.9rem; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
         button:hover { transform: translateY(-2px); opacity: 0.9; }
         button.secondary { background: transparent; color: var(--fg); border: 1px solid var(--border); }
-        button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+        button:disabled { opacity: 0.2; cursor: not-allowed; transform: none; }
         #status-bar { margin-top: 30px; font-size: 0.7rem; color: #666; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .dot { width: 6px; height: 6px; background: #333; border-radius: 50%; }
         .dot.active { background: #00ff00; box-shadow: 0 0 8px #00ff00; }
         #wallet-info { font-family: monospace; font-size: 0.65rem; color: #444; margin-top: 10px; word-break: break-all; }
-        #timer { color: var(--accent); font-weight: 700; margin-top: 15px; font-size: 0.8rem; }
+        
+        /* Box Timer Evidente */
+        #cooldown-box { margin-top: 20px; padding: 15px; border: 1px solid var(--border); border-radius: 8px; display: none; background: rgba(255, 62, 62, 0.05); }
+        #timer-label { font-size: 0.6rem; color: var(--grey); margin-bottom: 5px; text-transform: uppercase; }
+        #timer-value { color: var(--error); font-family: 'Unbounded', sans-serif; font-size: 1.2rem; font-weight: 700; }
+        
         .v { position: fixed; bottom: 30px; left: 30px; font-size: 10px; color: #333; font-weight: 700; }
     </style>
 </head>
 <body>
 
-<div class="v">ALPHA 0.4</div>
+<div class="v">ALPHA 0.5</div>
 
 <div class="container">
     <h1>PUSD</h1>
@@ -41,10 +46,14 @@
 
         <div class="btn-group" id="action-group" style="display:none;">
             <button id="mainActionBtn" onclick="handleAction()">Verify Humanity</button>
-            <button class="secondary" onclick="watchToken()">Add Token to Wallet</button>
+            <button class="secondary" onclick="watchToken()">Add PUSD to Wallet</button>
         </div>
 
-        <div id="timer"></div>
+        <div id="cooldown-box">
+            <div id="timer-label">Uplink Locked - Cooldown in effect</div>
+            <div id="timer-value">00D 00H 00M 00S</div>
+        </div>
+
         <div id="status-bar"><div id="status-dot" class="dot"></div><span id="status-text">System Idle</span></div>
         <div id="wallet-info"></div>
     </div>
@@ -64,42 +73,49 @@
 
     let signer, contract, step = "verify";
 
-    // 1. SETUP RETE + REFRESH FORZATO
+    // --- 1. SETUP RETE (AGGIUNTA E SWITCH) ---
     async function setupNetwork() {
         if (!window.ethereum) return alert("MetaMask missing");
         try {
-            updateStatus("Adding network...", false);
+            updateStatus("Configuring Westend...", false);
             await window.ethereum.request({
                 method: 'wallet_addEthereumChain',
                 params: [NETWORK_DATA]
             });
-            updateStatus("Network Ready. Refreshing...", true);
-            // Il refresh pulisce il provider e risolve il bug del "Wrong Network"
-            setTimeout(() => location.reload(), 1000);
+            updateStatus("Network Ready. Click Connect.", true);
         } catch (e) {
-            updateStatus("Setup aborted.", false);
+            updateStatus("Setup failed.", false);
         }
     }
 
-    // 2. CONNESSIONE CON CONTROLLO NORMALIZZATO
+    // --- 2. CONNESSIONE (FORZA LO SWITCH SE NECESSARIO) ---
     async function connectOnly() {
         if (!window.ethereum) return alert("MetaMask missing");
         try {
-            updateStatus("Connecting...", false);
+            updateStatus("Syncing...", false);
             
-            // Verifichiamo la rete attuale prima di procedere
-            const currentChainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
-            const currentChainIdDec = parseInt(currentChainIdHex, 16);
-
-            if (currentChainIdDec !== TARGET_DEC) {
-                updateStatus("Wrong Network. Please use Setup.", false);
-                document.getElementById('setupBtn').style.borderColor = "#e6007a";
-                return;
-            }
-
+            // Proviamo a connettere l'account
             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
             const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-            
+            const { chainId } = await provider.getNetwork();
+
+            // Se la rete è sbagliata, tentiamo lo switch immediato invece di bloccare
+            if (chainId !== TARGET_DEC) {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: TARGET_HEX }],
+                    });
+                    // Se lo switch avviene, ricarichiamo per evitare bug di cache del provider
+                    location.reload();
+                    return;
+                } catch (err) {
+                    updateStatus("Switch to Westend failed.", false);
+                    return;
+                }
+            }
+
+            // Se siamo qui, la rete è corretta
             signer = provider.getSigner();
             contract = new ethers.Contract(CONTRACT_ADDR, [
                 "function claimToken() external",
@@ -113,80 +129,14 @@
             await checkCooldown(accounts[0]);
         } catch (e) {
             console.error(e);
-            updateStatus("Connection failed.", false);
+            updateStatus("Uplink failed.", false);
         }
     }
 
-    // 3. AZIONI
+    // --- 3. LOGICA AZIONI ---
     async function handleAction() {
         const btn = document.getElementById('mainActionBtn');
         if (step === "verify") {
-            updateStatus("Analyzing biological data...", true);
+            updateStatus("Verifying biological pattern...", true);
             btn.disabled = true;
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerText = "Claim 1.00 PUSD";
-                updateStatus("Humanity confirmed.", true);
-                step = "claim";
-            }, 1000);
-        } else if (step === "claim") {
-            try {
-                updateStatus("Broadcasting to Westend...", true);
-                btn.disabled = true;
-                const tx = await contract.claimToken({ gasLimit: 200000 });
-                await tx.wait();
-                updateStatus("Success. 1 PUSD received.", true);
-                btn.innerText = "Received";
-                setTimeout(() => location.reload(), 3000);
-            } catch (e) {
-                updateStatus("Claim failed (Cooldown?)", false);
-                btn.disabled = false;
-            }
-        }
-    }
-
-    async function checkCooldown(addr) {
-        try {
-            const last = await contract.lastClaim(addr);
-            const next = (last.toNumber() + (7 * 24 * 60 * 60)) * 1000;
-            if (Date.now() < next) {
-                document.getElementById('mainActionBtn').disabled = true;
-                document.getElementById('mainActionBtn').innerText = "Cooldown Active";
-                updateStatus("Sync locked.", false);
-                startTimer(next);
-            } else {
-                updateStatus("Uplink active.", true);
-            }
-        } catch (e) { updateStatus("Ready.", true); }
-    }
-
-    function startTimer(target) {
-        const div = document.getElementById('timer');
-        const itv = setInterval(() => {
-            const diff = target - Date.now();
-            if (diff <= 0) { clearInterval(itv); location.reload(); }
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            div.innerText = `NEXT ACCESS: ${d}D ${h}H ${M}M ${s}S`.toUpperCase();
-        }, 1000);
-    }
-
-    function updateStatus(text, active) {
-        document.getElementById('status-text').innerText = text;
-        document.getElementById('status-dot').className = active ? 'dot active' : 'dot';
-    }
-
-    async function watchToken() {
-        await window.ethereum.request({
-            method: 'wallet_watchAsset',
-            params: {
-                type: 'ERC20',
-                options: { address: CONTRACT_ADDR, symbol: 'PUSD', decimals: 18 }
-            }
-        });
-    }
-</script>
-</body>
-</html>
+            setTimeout(()
